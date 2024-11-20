@@ -1,0 +1,28 @@
+{
+    "users": [
+        {
+            "user_id": 0,
+            "email": "test@naver.com",
+            "password": "eef8f5f137473e2aa6cab7d0ed05fbe7b74c2b79202e4a3a71da0b584d30e079",
+            "nickname": "테스트",
+            "salt": "3r3135",
+            "profile_img": "../resource/img/이력서사진.jpeg"
+        },
+        {
+            "user_id": 1,
+            "email": "test@naver.com",
+            "password": "90238df0e175b9da30dad8c07ee60144750629c046aa5695ec0ad5a600ebf699",
+            "salt": "FLkQ1214JPbUt5F8eT3JoQefunflEMEJjv6pdE6OGCEkV8I4q7dG8LdPWt5NcLHTFQG+++oAce/FQgeAueyQ4cuzAwSEN8qBNj3PRLSyBkx9NtwJRMD9y30boDNBDPD9DAyz3ZBIioR+ZQgf0Ny5890cdTRtvnzP76u3UCYt1yY=",
+            "nickname": "닉네임",
+            "profile_img": null
+        },
+        {
+            "user_id": 2,
+            "email": "test2@naver.com",
+            "password": "d54ab9ebdd1af67e51ebeed4460a8f50270e0ab49839eab895b709b652cd2a25",
+            "salt": "7qH8argdbH0thq2dyOsjLUHLrryO7VkwYDqco98beRC3WrXaUoae6Q3M4vV0rocVOCg6XWBYD6lIO3ayaxNASlcxSrgox5HaZKkdpy0aibLh0B4kaPPC+NUsIyll6+ANbpYsGZSGLcZJcJbJAy4Z6gcWK+MdIZl/G/vMj+d4ovw=",
+            "nickname": "닉네임2",
+            "profile_img": null
+        }
+    ]
+}
