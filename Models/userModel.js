@@ -96,3 +96,35 @@ exports.getUser = async (user_id) => {
         throw new Error('유저 정보를 조회중 에러 발생');
     }
 };
+
+//NOTE:유저 정보 수정
+exports.editUser = async (nickname, profile_img, user_id) => {
+    try {
+        const data = await fs.readFile(dataPath, 'utf8');
+        const userData = JSON.parse(data);
+
+        const user = userData.users.find((user) => user.user_id == user_id);
+        if (!user) return 404;
+
+        if (user.profile_img && profile_img) {
+            const filePath = path.join(__dirname, '..', user.profile_img);
+
+            await fs.unlink(filePath, (e) => {
+                if (e) throw new Error(`이미지 삭제 실패 => ${e}`);
+            });
+        }
+
+        userData.users[user_id] = {
+            ...user,
+            nickname: nickname || user.nickname,
+            profile_img: profile_img || user.profile_img,
+        };
+
+        await fs.writeFile(dataPath, JSON.stringify(userData, null, 4), 'utf8');
+
+        return user_id;
+    } catch (e) {
+        console.log(`유저 정보를 수정중 에러 발생 => ${e}`);
+        throw new Error('유저 정보를 수정중 에러 발생');
+    }
+};
