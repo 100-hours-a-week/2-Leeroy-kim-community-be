@@ -35,9 +35,17 @@ exports.addUser = async (email, password, nickname, profile_img) => {
         const data = await fs.readFile(dataPath, 'utf8');
         const userData = JSON.parse(data);
 
-        //NOTE: 이메일 중복 확인
-        const user = userData.users.find((user) => user.email === email);
-        if (user) return 400;
+        //NOTE: 이메일,닉네임 중복 확인
+        const userEmail = userData.users.find((user) => user.email === email);
+        if (userEmail) return 4001;
+        const userNickname = userData.users.find(
+            (user) => user.nickname === nickname
+        );
+        if (userNickname) return 4002;
+
+        //NOTE: 이전 user_id + 1한 값을 새로운 user_id로 할당
+        const lastUser = userData.users.length - 1;
+        const newUserId = userData.users[lastUser].user_id + 1;
 
         const salt = await crypto.randomBytes(128).toString('base64');
         password = await crypto
@@ -46,7 +54,7 @@ exports.addUser = async (email, password, nickname, profile_img) => {
             .digest('hex');
 
         const newUser = {
-            user_id: userData.users.length,
+            user_id: newUserId,
             email: email,
             password: password,
             salt: salt,
@@ -58,7 +66,7 @@ exports.addUser = async (email, password, nickname, profile_img) => {
         await fs.writeFile(dataPath, JSON.stringify(userData, null, 4), 'utf8');
 
         //NOTE: 유저id 반환
-        return userData.users.length - 1;
+        return newUserId;
     } catch (e) {
         console.log(`회원가입중 에러 발생 => ${e}`);
         throw new Error('회원가입중 문제가 발생했습니다!');

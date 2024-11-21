@@ -41,7 +41,8 @@ exports.login = async (req, res) => {
 };
 
 exports.signup = async (req, res) => {
-    const { email, password, nickname, profile_img } = req.body;
+    const { email, password, nickname } = req.body;
+    const profile_img = req.file && `/resource/profileImg/${req.file.filename}`;
 
     if (!email && !password && !nickname)
         return res
@@ -56,9 +57,14 @@ exports.signup = async (req, res) => {
             profile_img
         );
 
-        if (result == 400)
+        if (result == 4001)
             return res.status(400).json({
                 message: '이메일이 중복되었습니다.',
+                data: null,
+            });
+        if (result == 4002)
+            return res.status(400).json({
+                message: '닉네임이 중복되었습니다.',
                 data: null,
             });
 
