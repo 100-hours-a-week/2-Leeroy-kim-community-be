@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const userController = require('../Controllers/userController');
 const multer = require('multer');
 const path = require('path');
+const userController = require('../Controllers/userController');
+const cookie = require('../middlewares/checkCookie');
 
 //NOTE: 이미지 저장소 설정
 const storage = multer.diskStorage({
@@ -37,5 +38,6 @@ const upload = multer({
 
 router.post('/login', userController.login);
 router.post('/signup', upload.single('profile_img'), userController.signup);
+router.get('/:id', cookie.checkCookie, userController.getUser);
 
 module.exports = router;

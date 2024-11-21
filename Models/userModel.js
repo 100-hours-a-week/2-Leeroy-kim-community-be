@@ -72,3 +72,27 @@ exports.addUser = async (email, password, nickname, profile_img) => {
         throw new Error('회원가입중 문제가 발생했습니다!');
     }
 };
+
+//NOTE: 유저 정보 조회
+exports.getUser = async (user_id) => {
+    try {
+        const data = await fs.readFile(dataPath, 'utf8');
+        const userData = JSON.parse(data);
+
+        const user = userData.users.find((user) => user.user_id == user_id);
+
+        if (!user) return 404;
+
+        const userInfo = {
+            user_id: user.user_id,
+            email: user.email,
+            nickname: user.nickname,
+            profile_img: `http://localhost:5050${user.profile_img}`,
+        };
+
+        return JSON.stringify(userInfo);
+    } catch (e) {
+        console.log(`유저 정보를 조회중 에러 발생 => ${e}`);
+        throw new Error('유저 정보를 조회중 에러 발생');
+    }
+};
