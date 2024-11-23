@@ -10,18 +10,11 @@
         },
         {
             "user_id": 1,
-            "email": "test2@naver.com",
-            "password": "d23e93a8f581a5e220f2da2c633668e950d6273ad6e2196a966f777738279199",
-            "salt": "8aq2oc3j+u7FJ7YMpNYbatD+YzqHiCEqe0TUjGBYz5LOYmpmU3hpJdLN+Pb1QO1zQfwN5f1jSNC5awCwi9k1nuRUUn9iLhmbMWYdQTs2Er7rXBgPTVFfUDAVvmN+cquRv1KaPgOFyu2cGfVcnP2mXSXcANkYk8kR24quK8FmU0Y=",
-            "nickname": "닉네임2"
-        },
-        {
-            "user_id": 2,
-            "email": "test3@naver.com",
-            "password": "e7ccddf5722f379c956ad7cf6743f4a0aa059d3382e02bb93936ebe04c5ae1b4",
-            "salt": "SnlMkdS3zZD8+d7HpQfzNbKnUWHkLAvbJxGIPwqvpZC5FmKIYFaYshwBjuBLO+2Tb2YC/oTQIAk7HIm8zTBUJ+ro0spOUIJoA4E9kAILEpTnN5V2dOB14+pw2wXfl4UvcDdMMba9VCEYoIogGeKigt8qeY47zJyXq7d5+plw7uk=",
-            "nickname": "닉네임3",
-            "profile_img": "/resource/profileImg/1732200478410-0.7085218621374958.jpeg"
+            "email": "test1@naver.com",
+            "password": "f89a84ac3c835dab805cb0c822a277b57b0e9dba9357c69c9851c08ea3fbd298",
+            "salt": "sCQ09dVngngUHbVpbXpFjjHnd0/KpRwWvyliVM8cJqw1PbhQ8iovmwnGvo2zutiIrlIHp9zHwyqQHD+JElif2ytALHfnEYluMp0xyrsISrKNn3UbW/4siWupx1Gnme/Z54su+ko2Ssk2A6q6SzWedX8dKknwEQS/s2Q2VPlkbYw=",
+            "nickname": "닉네임1",
+            "profile_img": "/resource/profileImg/1732210182460-0.7254216791979409.jpeg"
         }
     ]
 }

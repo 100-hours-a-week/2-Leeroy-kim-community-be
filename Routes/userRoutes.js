@@ -39,5 +39,11 @@ const upload = multer({
 router.post('/login', userController.login);
 router.post('/signup', upload.single('profile_img'), userController.signup);
 router.get('/:id', cookie.checkCookie, userController.getUser);
+router.patch(
+    '/:id',
+    cookie.checkCookie,
+    upload.single('profile_img'),
+    userController.editUser
+);
 
 module.exports = router;
