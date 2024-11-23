@@ -1,5 +1,4 @@
 const userModel = require('../Models/userModel');
-const auth = require('../middlewares/checkAuth');
 
 //NOTE: 로그인
 exports.login = async (req, res) => {
@@ -94,9 +93,6 @@ exports.signup = async (req, res) => {
 //NOTE: 회원정보 조회
 exports.getUser = async (req, res) => {
     const params_id = await req.params.id;
-    const user_id = await req.user.user_id;
-
-    if (!auth.checkAuth(params_id, user_id, res)) return;
 
     try {
         const result = await userModel.getUser(params_id);
@@ -124,10 +120,8 @@ exports.getUser = async (req, res) => {
 exports.editUser = async (req, res) => {
     const { nickname } = req.body;
     const profile_img = req.file && `/resource/profileImg/${req.file.filename}`;
-    const params_id = req.params.id;
-    const user_id = req.user.user_id;
+    const params_id = req.user.user_id;
 
-    if (!auth.checkAuth(params_id, user_id, res)) return;
     if (!nickname && !profile_img)
         return res.status(400).json({
             message: '입력한 값이 비었습니다.',
@@ -144,6 +138,38 @@ exports.editUser = async (req, res) => {
         if (result == 404)
             return res.status(404).json({
                 message: '존재하지 않는 회웝입니다.',
+                data: null,
+            });
+
+        return res.status(201).json({
+            message: '회원정보를 수정 완료!',
+            data: JSON.parse(result),
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            message: '서버에서 에러가 발생했습니다!',
+            data: null,
+        });
+    }
+};
+
+//NOTE: 회원 비밀번호 수정
+exports.editPwd = async (req, res) => {
+    const { password } = req.body;
+    const user_id = req.user.user_id;
+
+    if (!password)
+        return res.status(400).json({
+            message: '입력한 값이 비었습니다',
+            data: null,
+        });
+    try {
+        const result = await userModel.editPwd(user_id, password);
+
+        if (result == 404)
+            return res.status(404).json({
+                message: '존재하지 않는 회원입니다.',
                 data: null,
             });
 

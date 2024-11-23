@@ -103,7 +103,10 @@ exports.editUser = async (nickname, profile_img, user_id) => {
         const data = await fs.readFile(dataPath, 'utf8');
         const userData = JSON.parse(data);
 
-        const user = userData.users.find((user) => user.user_id == user_id);
+        const user_index = userData.users.findIndex(
+            (user) => user.user_id == user_id
+        );
+        const user = userData.users[user_index];
         if (!user) return 404;
 
         if (user.profile_img && profile_img) {
@@ -114,7 +117,7 @@ exports.editUser = async (nickname, profile_img, user_id) => {
             });
         }
 
-        userData.users[user_id] = {
+        userData.users[user_index] = {
             ...user,
             nickname: nickname || user.nickname,
             profile_img: profile_img || user.profile_img,
@@ -126,5 +129,38 @@ exports.editUser = async (nickname, profile_img, user_id) => {
     } catch (e) {
         console.log(`유저 정보를 수정중 에러 발생 => ${e}`);
         throw new Error('유저 정보를 수정중 에러 발생');
+    }
+};
+
+//NOTE: 회원 비밀번호 수정
+exports.editPwd = async (user_id, password) => {
+    try {
+        const data = await fs.readFile(dataPath, 'utf8');
+        const userData = JSON.parse(data);
+
+        const user_index = userData.users.findIndex(
+            (user) => user.user_id == user_id
+        );
+        const user = userData.users[user_index];
+        if (!user) return 404;
+
+        const salt = await crypto.randomBytes(128).toString('base64');
+        password = await crypto
+            .createHash('sha256')
+            .update(password + salt)
+            .digest('hex');
+
+        userData.users[user_index] = {
+            ...user,
+            password: password,
+            salt: salt,
+        };
+
+        await fs.writeFile(dataPath, JSON.stringify(userData, null, 4), 'utf8');
+
+        return null;
+    } catch (e) {
+        console.log(`회원 비밀번호 수정중 에러 발생 =>${e}`);
+        throw new Error('회원 비밀번호 수정중 에러 발생');
     }
 };
