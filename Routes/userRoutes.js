@@ -38,6 +38,12 @@ const upload = multer({
 
 router.post('/login', userController.login);
 router.post('/signup', upload.single('profile_img'), userController.signup);
+router.post(
+    '/logout',
+    cookie.checkCookie,
+    cookie.checkAuth,
+    userController.logout
+);
 router.get(
     '/:id',
     cookie.checkCookie,

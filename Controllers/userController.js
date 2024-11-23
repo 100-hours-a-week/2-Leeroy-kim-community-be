@@ -46,6 +46,26 @@ exports.login = async (req, res) => {
     }
 };
 
+//NOTE: 로그아웃
+exports.logout = async (req, res) => {
+    try {
+        res.clearCookie('user_id', {
+            httpOnly: true,
+        });
+
+        return res.status(200).json({
+            message: '로그아웃 성공!',
+            data: req.user.user_id,
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            message: '서버에서 에러가 발생했습니다!',
+            data: null,
+        });
+    }
+};
+
 //NOTE: 회원가입
 exports.signup = async (req, res) => {
     const { email, password, nickname } = req.body;
