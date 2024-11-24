@@ -205,3 +205,29 @@ exports.editPwd = async (req, res) => {
         });
     }
 };
+
+//NOTE: 회원 삭제
+exports.delUser = async (req, res) => {
+    const user_id = req.user.user_id;
+
+    try {
+        const result = await userModel.delUser(user_id);
+
+        if (result == 404)
+            return res.status(404).json({
+                message: '존재하지 않는 회원입니다.',
+                data: null,
+            });
+
+        return res.status(201).json({
+            message: '회원 삭제 완료!',
+            data: result,
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            message: '서버에서 에러가 발생했습니다!',
+            data: null,
+        });
+    }
+};

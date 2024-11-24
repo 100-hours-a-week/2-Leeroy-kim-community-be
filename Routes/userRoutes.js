@@ -63,5 +63,10 @@ router.patch(
     cookie.checkAuth,
     userController.editPwd
 );
-
+router.delete(
+    '/:id',
+    cookie.checkCookie,
+    cookie.checkAuth,
+    userController.delUser
+);
 module.exports = router;

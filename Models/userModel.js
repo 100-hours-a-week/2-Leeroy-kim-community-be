@@ -164,3 +164,35 @@ exports.editPwd = async (user_id, password) => {
         throw new Error('회원 비밀번호 수정중 에러 발생');
     }
 };
+
+//NOTE: 회원 삭제
+exports.delUser = async (user_id) => {
+    try {
+        const data = await fs.readFile(dataPath, 'utf8');
+        const userData = JSON.parse(data);
+
+        const user_index = userData.users.findIndex(
+            (user) => user.user_id == user_id
+        );
+
+        const user = userData.users[user_index];
+        if (!user) return 404;
+
+        userData.users.splice(user_index, 1);
+
+        await fs.writeFile(dataPath, JSON.stringify(userData, null, 4), 'utf8');
+
+        if (user.profile_img) {
+            const filePath = path.join(__dirname, '..', user.profile_img);
+
+            await fs.unlink(filePath, (e) => {
+                if (e) throw new Error(`이미지 삭제 실패 => ${e}`);
+            });
+        }
+
+        return { user_id: user_id };
+    } catch (e) {
+        console.log(`회원 삭제중 에러 발생 =>${e}`);
+        throw new Error('회원 삭제중 에러 발생!');
+    }
+};
