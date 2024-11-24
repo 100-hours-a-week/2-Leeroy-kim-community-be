@@ -1,16 +1,24 @@
-const express = require('express')
-const router = require('./Routes/router')
+const express = require('express');
+const router = require('./Routes/router');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+require('dotenv').config();
 
 const app = express();
 const port = 5050;
 
 app.use(express.json());
-app.use('/api',router);
+const cookieSecret = process.env.COOKIE_SECRET_KEY;
+app.use(cookieParser(cookieSecret));
 
-app.get('/',(req,res)=>{
-    res.send('Hello World!')
-})
+app.use('/api', router);
 
-app.listen(port,()=>{
-    console.log(`Sever is running on http://localhost:${port}`)
-})
+app.get('/', (req, res) => {
+    res.send('Hello World!');
+});
+
+app.use('/resource', express.static(path.join(__dirname, 'resource')));
+
+app.listen(port, () => {
+    console.log(`Sever is running on http://localhost:${port}`);
+});

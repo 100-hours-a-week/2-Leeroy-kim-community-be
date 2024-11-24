@@ -1,0 +1,20 @@
+{
+    "users": [
+        {
+            "user_id": 0,
+            "email": "test@naver.com",
+            "password": "eef8f5f137473e2aa6cab7d0ed05fbe7b74c2b79202e4a3a71da0b584d30e079",
+            "nickname": "테스트",
+            "salt": "3r3135",
+            "profile_img": "null"
+        },
+        {
+            "user_id": 1,
+            "email": "test1@naver.com",
+            "password": "57d9011cb119610941b176862c64bdf9c0c7d600dfdb33c656bbfe857a93f377",
+            "salt": "O1ybH5ZWqp+G1Nn9T16cXhxlGnnKp/USK2bGhDVCKA7/b8DyARuPdh2fPXoN7OBuGJIrl02wZhYsWbeqffiSzo1hs3IegiqJ6UJheZdg2eNTeTKsROsr1ZMrYZagaZOzg1VSBsaUMLeBJ13IobK9+lkushOgjMhINQjEv6DjNfI=",
+            "nickname": "닉네임1",
+            "profile_img": "/resource/profileImg/1732379144075-0.697130792787513.jpeg"
+        }
+    ]
+}
