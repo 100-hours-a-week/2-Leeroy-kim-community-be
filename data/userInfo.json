@@ -11,10 +11,10 @@
         {
             "user_id": 1,
             "email": "test1@naver.com",
-            "password": "f89a84ac3c835dab805cb0c822a277b57b0e9dba9357c69c9851c08ea3fbd298",
-            "salt": "sCQ09dVngngUHbVpbXpFjjHnd0/KpRwWvyliVM8cJqw1PbhQ8iovmwnGvo2zutiIrlIHp9zHwyqQHD+JElif2ytALHfnEYluMp0xyrsISrKNn3UbW/4siWupx1Gnme/Z54su+ko2Ssk2A6q6SzWedX8dKknwEQS/s2Q2VPlkbYw=",
+            "password": "57d9011cb119610941b176862c64bdf9c0c7d600dfdb33c656bbfe857a93f377",
+            "salt": "O1ybH5ZWqp+G1Nn9T16cXhxlGnnKp/USK2bGhDVCKA7/b8DyARuPdh2fPXoN7OBuGJIrl02wZhYsWbeqffiSzo1hs3IegiqJ6UJheZdg2eNTeTKsROsr1ZMrYZagaZOzg1VSBsaUMLeBJ13IobK9+lkushOgjMhINQjEv6DjNfI=",
             "nickname": "닉네임1",
-            "profile_img": "/resource/profileImg/1732210182460-0.7254216791979409.jpeg"
+            "profile_img": "/resource/profileImg/1732379144075-0.697130792787513.jpeg"
         }
     ]
 }

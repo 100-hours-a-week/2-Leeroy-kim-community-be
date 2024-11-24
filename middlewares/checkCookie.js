@@ -10,3 +10,14 @@ exports.checkCookie = (req, res, next) => {
     req.user = { user_id };
     next();
 };
+
+exports.checkAuth = (req, res, next) => {
+    if (req.params.id != req.user.user_id) {
+        return res.status(403).json({
+            message: '권한이 없습니다.',
+            data: null,
+        });
+    }
+
+    next();
+};

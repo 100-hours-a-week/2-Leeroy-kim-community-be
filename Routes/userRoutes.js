@@ -38,12 +38,35 @@ const upload = multer({
 
 router.post('/login', userController.login);
 router.post('/signup', upload.single('profile_img'), userController.signup);
-router.get('/:id', cookie.checkCookie, userController.getUser);
+router.post(
+    '/logout',
+    cookie.checkCookie,
+    cookie.checkAuth,
+    userController.logout
+);
+router.get(
+    '/:id',
+    cookie.checkCookie,
+    cookie.checkAuth,
+    userController.getUser
+);
 router.patch(
     '/:id',
     cookie.checkCookie,
+    cookie.checkAuth,
     upload.single('profile_img'),
     userController.editUser
 );
-
+router.patch(
+    '/password/:id',
+    cookie.checkCookie,
+    cookie.checkAuth,
+    userController.editPwd
+);
+router.delete(
+    '/:id',
+    cookie.checkCookie,
+    cookie.checkAuth,
+    userController.delUser
+);
 module.exports = router;
