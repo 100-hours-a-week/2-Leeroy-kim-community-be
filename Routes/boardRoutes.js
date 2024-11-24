@@ -43,5 +43,6 @@ router.post(
     boardController.addBoard
 );
 
+router.get('/:board_id', cookie.checkCookie, boardController.getBoard);
 
 module.exports = router;

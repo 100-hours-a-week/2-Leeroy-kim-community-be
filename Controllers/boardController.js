@@ -29,8 +29,39 @@ exports.addBoard = async (req, res) => {
         console.log(e);
         return res.status(500).json({
             message: '서버에서 에러가 발생했습니다!',
-            dta: null,
+            data: null,
         });
     }
 };
 
+//NOTE: 게시판 상세조회
+exports.getBoard = async (req, res) => {
+    const board_id = req.params.board_id;
+
+    try {
+        const result = await boardModel.getBoard(board_id);
+
+        if (result == 4041)
+            return res.status(404).json({
+                message: '존재하지 않는 게시글입니다.',
+                data: null,
+            });
+
+        if (result == 4042)
+            return res.status(404).json({
+                message: '작성자가 존재하지 않습니다.',
+                data: null,
+            });
+
+        return res.status(200).json({
+            message: '게시글 조회 완료!',
+            data: JSON.parse(result),
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            message: '서버에서 에러가 발생했습니다!',
+            data: null,
+        });
+    }
+};

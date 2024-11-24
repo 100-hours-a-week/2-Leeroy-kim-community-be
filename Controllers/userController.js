@@ -69,7 +69,9 @@ exports.logout = async (req, res) => {
 //NOTE: 회원가입
 exports.signup = async (req, res) => {
     const { email, password, nickname } = req.body;
-    const profile_img = req.file && `/resource/profileImg/${req.file.filename}`;
+    const profile_img = req.file
+        ? `/resource/profileImg/${req.file.filename}`
+        : null;
 
     if (!email && !password && !nickname)
         return res
