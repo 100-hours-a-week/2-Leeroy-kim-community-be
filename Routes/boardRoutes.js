@@ -53,5 +53,12 @@ router.patch(
     upload.single('content_img'),
     boardController.editBoard
 );
+//NOTE:게시글 삭제
+router.delete(
+    '/:board_id',
+    cookie.checkCookie,
+    cookie.checkBoardAuth,
+    boardController.delBoard
+);
 
 module.exports = router;

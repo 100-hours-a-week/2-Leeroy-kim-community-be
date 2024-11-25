@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const boardPath = path.join(__dirname, '../data/boardInfo.json');
 
+//NOTE: 쿠키 유효 검사
 exports.checkCookie = (req, res, next) => {
     const user_id = req.cookies.user_id;
 
@@ -15,6 +16,7 @@ exports.checkCookie = (req, res, next) => {
     next();
 };
 
+//NOTE: 회원로직 권한 검사
 exports.checkAuth = (req, res, next) => {
     if (req.params.id != req.user.user_id) {
         return res.status(403).json({
@@ -26,6 +28,7 @@ exports.checkAuth = (req, res, next) => {
     next();
 };
 
+//NOTE: 게시글 권한 검사
 exports.checkBoardAuth = async (req, res, next) => {
     const board_id = req.params.board_id;
     const data = await fs.readFile(boardPath, 'utf8');

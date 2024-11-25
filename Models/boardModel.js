@@ -131,3 +131,36 @@ exports.editBoard = async (board_id, title, content, content_img) => {
         throw new Error('게시글 수정중 문제가 발생했습니다!');
     }
 };
+
+//NOTE: 게시글 삭제
+exports.delBoard = async (board_id) => {
+    try {
+        const boardData = await readBoardData();
+        const boardIndex = boardData.boards.findIndex(
+            (board) => board.board_id == board_id
+        );
+        const board = boardData.boards[boardIndex];
+        if (!board) return 404;
+
+        boardData.boards.splice(boardIndex, 1);
+
+        await fs.writeFile(
+            boardPath,
+            JSON.stringify(boardData, null, 4),
+            'utf8'
+        );
+
+        if (board.content_img) {
+            const filePath = path.join(__dirname, '..', board.content_img);
+
+            await fs.unlink(filePath, (e) => {
+                if (e) throw new Error(`이미지 삭제 실패 => ${e}`);
+            });
+        }
+
+        return { board_id: board_id };
+    } catch (e) {
+        console.log(`게시글 삭제중 에러 발생 => ${e}`);
+        throw new Error('게시글 수정중 문제가 발생했습니다!');
+    }
+};

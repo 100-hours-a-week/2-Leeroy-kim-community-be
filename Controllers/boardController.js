@@ -100,3 +100,29 @@ exports.editBoard = async (req, res) => {
         });
     }
 };
+
+//NOTE: 게시글 삭제
+exports.delBoard = async (req, res) => {
+    const board_id = req.params.board_id;
+
+    try {
+        const result = await boardModel.delBoard(board_id);
+
+        if (result == 404)
+            return res.status(404).json({
+                message: '존재하지 않는 회원입니다.',
+                data: null,
+            });
+
+        return res.status(201).json({
+            message: '게시글 삭제 완료!',
+            data: result,
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            message: '서버에서 에러가 발생했습니다!',
+            data: null,
+        });
+    }
+};
