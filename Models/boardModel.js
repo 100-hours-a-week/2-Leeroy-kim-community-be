@@ -3,7 +3,6 @@ const fs = require('fs').promises;
 const boardPath = path.join(__dirname, '../data/boardInfo.json');
 const userPath = path.join(__dirname, '../data/userInfo.json');
 const dayjs = require('dayjs');
-const { isErrored } = require('stream');
 
 const readBoardData = async () => {
     const data = await fs.readFile(boardPath, 'utf8');
