@@ -36,13 +36,22 @@ const upload = multer({
     fileFilter: fileFilter,
 });
 
+//NOTE:게시글 작성
 router.post(
     '',
     cookie.checkCookie,
     upload.single('content_img'),
     boardController.addBoard
 );
-
+//NOTE:게시글 상세 조회
 router.get('/:board_id', cookie.checkCookie, boardController.getBoard);
+//NOTE:게시글 수정
+router.patch(
+    '/:board_id',
+    cookie.checkCookie,
+    cookie.checkBoardAuth,
+    upload.single('content_img'),
+    boardController.editBoard
+);
 
 module.exports = router;

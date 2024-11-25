@@ -39,12 +39,14 @@ const upload = multer({
 router.post('/login', userController.login);
 router.post('/signup', upload.single('profile_img'), userController.signup);
 router.post('/logout', cookie.checkCookie, userController.logout);
+//NOTE:회원 정보 조회
 router.get(
     '/:id',
     cookie.checkCookie,
     cookie.checkAuth,
     userController.getUser
 );
+//NOTE:회원 정보 수정
 router.patch(
     '/:id',
     cookie.checkCookie,
@@ -52,12 +54,14 @@ router.patch(
     upload.single('profile_img'),
     userController.editUser
 );
+//NOTE:회원 비밀번호 수정
 router.patch(
     '/password/:id',
     cookie.checkCookie,
     cookie.checkAuth,
     userController.editPwd
 );
+//NOTE:회원 탈퇴
 router.delete(
     '/:id',
     cookie.checkCookie,

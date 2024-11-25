@@ -14,7 +14,7 @@ const readUserData = async () => {
     return JSON.parse(data);
 };
 
-//NOTE: 게시판 작성
+//NOTE: 게시글 작성
 exports.addBoard = async (user_id, title, content, content_img) => {
     try {
         const boardData = await readBoardData();
@@ -42,21 +42,21 @@ exports.addBoard = async (user_id, title, content, content_img) => {
             'utf8'
         );
 
-        return newBoardId;
+        return { board_id: newBoardId };
     } catch (e) {
-        console.log(`게시판 작성중 에러 발생 => ${e}`);
-        throw new Error('게시판 작성중 문제가 발생했습니다!');
+        console.log(`게시글 작성중 에러 발생 => ${e}`);
+        throw new Error('게시글 작성중 문제가 발생했습니다!');
     }
 };
 
-//NOTE: 게시판 상세조회
+//NOTE: 게시글 상세조회
 exports.getBoard = async (board_id) => {
     try {
         const boardData = await readBoardData();
-        const board = boardData.boards.find(
+        const boardId = boardData.boards.findIndex(
             (board) => board.board_id == board_id
         );
-
+        const board = boardData.boards[boardId];
         if (!board) return 4041;
 
         const userData = await readUserData();
@@ -66,9 +66,15 @@ exports.getBoard = async (board_id) => {
 
         if (!user) return 4042;
 
+        boardData.boards[boardId].view_count += 1;
+        await fs.writeFile(
+            boardPath,
+            JSON.stringify(boardData, null, 4),
+            'utf8'
+        );
+
         const boardInfo = {
             ...board,
-            view_count: board.view_count + 1,
             content_img:
                 board.content_img != null
                     ? `http://localhost:5050${board.content_img}`
@@ -82,7 +88,46 @@ exports.getBoard = async (board_id) => {
 
         return JSON.stringify(boardInfo);
     } catch (e) {
-        console.log(`게시판 조회중 에러 발생 => ${e}`);
-        throw new Error('게시판 조회중 문제가 발생했습니다!');
+        console.log(`게시글 조회중 에러 발생 => ${e}`);
+        throw new Error('게시글 조회중 문제가 발생했습니다!');
+    }
+};
+
+//NOTE: 게시글 수정
+exports.editBoard = async (board_id, title, content, content_img) => {
+    try {
+        const boardData = await readBoardData();
+        const boardIndex = boardData.boards.findIndex(
+            (board) => board.board_id == board_id
+        );
+        const board = boardData.boards[boardIndex];
+        if (!board) return 404;
+
+        if (board.content_img && content_img) {
+            const filePath = path.join(__dirname, '..', board.content_img);
+
+            await fs.unlink(filePath, (e) => {
+                if (e) throw new Error(`게시글 이미지 삭제 실패 =>${e}`);
+            });
+        }
+
+        boardData.boards[boardIndex] = {
+            ...board,
+            title: title || board.title,
+            update_date: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+            content: content || board.content,
+            content_img: content_img || board.content_img,
+        };
+
+        await fs.writeFile(
+            boardPath,
+            JSON.stringify(boardData, null, 4),
+            'utf8'
+        );
+
+        return board_id;
+    } catch (e) {
+        console.log(`게시글 수정중 에러 발생 => ${e}`);
+        throw new Error('게시글 수정중 문제가 발생했습니다!');
     }
 };

@@ -68,7 +68,7 @@ exports.addUser = async (email, password, nickname, profile_img) => {
         userData.users.push(newUser);
         await fs.writeFile(userPath, JSON.stringify(userData, null, 4), 'utf8');
 
-        //NOTE: 유저id 반환
+        //NOTE: 회원id 반환
         return newUserId;
     } catch (e) {
         console.log(`회원가입중 에러 발생 => ${e}`);
@@ -76,7 +76,7 @@ exports.addUser = async (email, password, nickname, profile_img) => {
     }
 };
 
-//NOTE: 유저 정보 조회
+//NOTE: 회원 정보 조회
 exports.getUser = async (user_id) => {
     try {
         const userData = await readUserData();
@@ -89,17 +89,20 @@ exports.getUser = async (user_id) => {
             user_id: user.user_id,
             email: user.email,
             nickname: user.nickname,
-            profile_img: `http://localhost:5050${user.profile_img}`,
+            profile_img:
+                user.profile_img != null
+                    ? `http://localhost:5050${user.profile_img}`
+                    : null,
         };
 
         return JSON.stringify(userInfo);
     } catch (e) {
-        console.log(`유저 정보를 조회중 에러 발생 => ${e}`);
-        throw new Error('유저 정보를 조회중 에러 발생');
+        console.log(`회원 정보를 조회중 에러 발생 => ${e}`);
+        throw new Error('회원 정보를 조회중 에러 발생');
     }
 };
 
-//NOTE:유저 정보 수정
+//NOTE:회원 정보 수정
 exports.editUser = async (nickname, profile_img, user_id) => {
     try {
         const userData = await readUserData();
@@ -128,8 +131,8 @@ exports.editUser = async (nickname, profile_img, user_id) => {
 
         return user_id;
     } catch (e) {
-        console.log(`유저 정보를 수정중 에러 발생 => ${e}`);
-        throw new Error('유저 정보를 수정중 에러 발생');
+        console.log(`회원 정보를 수정중 에러 발생 => ${e}`);
+        throw new Error('회원 정보를 수정중 에러 발생');
     }
 };
 

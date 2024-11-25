@@ -1,6 +1,6 @@
 const boardModel = require('../Models/boardModel');
 
-//NOTE: 게시판 작성
+//NOTE: 게시글 작성
 exports.addBoard = async (req, res) => {
     const user_id = req.user.user_id;
     const { title, content } = req.body;
@@ -23,7 +23,7 @@ exports.addBoard = async (req, res) => {
 
         return res.status(201).json({
             message: '게시글 작성 완료!',
-            data: JSON.parse(result),
+            data: result,
         });
     } catch (e) {
         console.log(e);
@@ -34,7 +34,7 @@ exports.addBoard = async (req, res) => {
     }
 };
 
-//NOTE: 게시판 상세조회
+//NOTE: 게시글 상세조회
 exports.getBoard = async (req, res) => {
     const board_id = req.params.board_id;
 
@@ -55,6 +55,41 @@ exports.getBoard = async (req, res) => {
 
         return res.status(200).json({
             message: '게시글 조회 완료!',
+            data: JSON.parse(result),
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            message: '서버에서 에러가 발생했습니다!',
+            data: null,
+        });
+    }
+};
+
+//NOTE: 게시글 수정
+exports.editBoard = async (req, res) => {
+    const { title, content } = req.body;
+    const content_img = req.file
+        ? `/resource/boardImg/${req.file.filename}`
+        : null;
+    const board_id = req.params.board_id;
+
+    try {
+        const result = await boardModel.editBoard(
+            board_id,
+            title,
+            content,
+            content_img
+        );
+
+        if (result == 404)
+            return res.status(404).json({
+                message: '존재하지 않는 게시글입니다!',
+                dat: null,
+            });
+
+        return res.status(201).json({
+            message: '게시글 수정 완료!',
             data: JSON.parse(result),
         });
     } catch (e) {
