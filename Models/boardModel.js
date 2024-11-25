@@ -67,9 +67,9 @@ exports.getBoard = async (board_id) => {
 
         if (!user) return 4042;
 
-        console.log(user);
         const boardInfo = {
             ...board,
+            view_count: board.view_count + 1,
             content_img:
                 board.content_img != null
                     ? `http://localhost:5050${board.content_img}`
