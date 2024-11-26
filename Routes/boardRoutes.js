@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
 const path = require('path');
-const userController = require('../Controllers/userController');
+const multer = require('multer');
 const cookie = require('../middlewares/checkCookie');
+const boardController = require('../Controllers/boardController');
+const { route } = require('./userRoutes');
 
 //NOTE: 이미지 저장소 설정
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '../resource/profileImg'));
+        cb(null, path.join(__dirname, '../resource/boardImg'));
     },
     filename: (req, file, cb) => {
         cb(
@@ -36,36 +37,43 @@ const upload = multer({
     fileFilter: fileFilter,
 });
 
-router.post('/login', userController.login);
-router.post('/signup', upload.single('profile_img'), userController.signup);
-router.post('/logout', cookie.checkCookie, userController.logout);
-//NOTE:회원 정보 조회
-router.get(
-    '/:id',
+//NOTE:게시글 작성
+router.post(
+    '',
     cookie.checkCookie,
-    cookie.checkAuth,
-    userController.getUser
+    upload.single('content_img'),
+    boardController.addBoard
 );
-//NOTE:회원 정보 수정
+//NOTE:게시글 상세 조회
+router.get('/:board_id', cookie.checkCookie, boardController.getBoard);
+//NOTE:게시글 수정
 router.patch(
-    '/:id',
+    '/:board_id',
     cookie.checkCookie,
-    cookie.checkAuth,
-    upload.single('profile_img'),
-    userController.editUser
+    cookie.checkBoardAuth,
+    upload.single('content_img'),
+    boardController.editBoard
 );
-//NOTE:회원 비밀번호 수정
-router.patch(
-    '/password/:id',
-    cookie.checkCookie,
-    cookie.checkAuth,
-    userController.editPwd
-);
-//NOTE:회원 탈퇴
+//NOTE:게시글 삭제
 router.delete(
-    '/:id',
+    '/:board_id',
     cookie.checkCookie,
-    cookie.checkAuth,
-    userController.delUser
+    cookie.checkBoardAuth,
+    boardController.delBoard
 );
+//NOTE:게시글 목록 조회
+router.get('', cookie.checkCookie, boardController.getBoardList);
+//NOTE;좋아요 증가
+router.post(
+    '/like/:board_id',
+    cookie.checkCookie,
+    boardController.increaseLike
+);
+//NOTE:좋아요 감소
+router.post(
+    '/unlike/:board_id',
+    cookie.checkCookie,
+    boardController.decreaseLike
+);
+
 module.exports = router;
