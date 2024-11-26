@@ -1,0 +1,9 @@
+const express = require('express');
+const router = express.Router({ mergeParams: true });
+const cookie = require('../middlewares/checkCookie');
+const commentCtr = require('../Controllers/commentController');
+
+//NOTE: 댓글 생성
+router.post('', cookie.checkCookie, commentCtr.addComment);
+
+module.exports = router;

@@ -4,7 +4,6 @@ const path = require('path');
 const multer = require('multer');
 const cookie = require('../middlewares/checkCookie');
 const boardController = require('../Controllers/boardController');
-const { route } = require('./userRoutes');
 
 //NOTE: 이미지 저장소 설정
 const storage = multer.diskStorage({
