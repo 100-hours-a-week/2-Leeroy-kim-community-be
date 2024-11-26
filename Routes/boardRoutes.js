@@ -4,6 +4,7 @@ const path = require('path');
 const multer = require('multer');
 const cookie = require('../middlewares/checkCookie');
 const boardController = require('../Controllers/boardController');
+const { route } = require('./userRoutes');
 
 //NOTE: 이미지 저장소 설정
 const storage = multer.diskStorage({
@@ -60,5 +61,6 @@ router.delete(
     cookie.checkBoardAuth,
     boardController.delBoard
 );
-
+//NOTE:게시글 목록 조회
+router.get('', cookie.checkCookie, boardController.getBoardList);
 module.exports = router;

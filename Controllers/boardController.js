@@ -126,3 +126,23 @@ exports.delBoard = async (req, res) => {
         });
     }
 };
+
+//NOTE: 게시글 목록 조회
+exports.getBoardList = async (req, res) => {
+    const { page, limit } = req.query;
+
+    try {
+        const result = await boardModel.getBoardList(page, limit);
+
+        return res.status(200).json({
+            message: '게시글 목록 조회 완료!',
+            data: JSON.parse(result),
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            message: '서버에서 에러가 발생했습니다!',
+            data: null,
+        });
+    }
+};

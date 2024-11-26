@@ -3,6 +3,7 @@ const fs = require('fs').promises;
 const boardPath = path.join(__dirname, '../data/boardInfo.json');
 const userPath = path.join(__dirname, '../data/userInfo.json');
 const dayjs = require('dayjs');
+const { stringify } = require('querystring');
 
 const readBoardData = async () => {
     const data = await fs.readFile(boardPath, 'utf8');
@@ -162,5 +163,48 @@ exports.delBoard = async (board_id) => {
     } catch (e) {
         console.log(`게시글 삭제중 에러 발생 => ${e}`);
         throw new Error('게시글 수정중 문제가 발생했습니다!');
+    }
+};
+
+//NOTE:게시글 목록 조회
+exports.getBoardList = async (page, limit) => {
+    try {
+        const boardData = await readBoardData();
+        const userData = await readUserData();
+
+        const startIndex = (page - 1) * limit;
+        const lastIndex = page * limit - 1;
+
+        console.log(startIndex);
+
+        const sortBoards = boardData.boards.sort(
+            (a, b) => b.board_id - a.board_id
+        );
+
+        const result = await sortBoards
+            .splice(startIndex, lastIndex)
+            .map((board) => {
+                const user = userData.users.find(
+                    (user) => user.user_id == board.user_id
+                );
+
+                return {
+                    ...board,
+                    content_img:
+                        board.content_img != null
+                            ? `http://localhost:5050${board.content_img}`
+                            : null,
+                    nickname: user.nickname,
+                    profile_img:
+                        user.profile_img != null
+                            ? `http://localhost:5050${user.profile_img}`
+                            : null,
+                };
+            });
+
+        return JSON.stringify(result);
+    } catch (e) {
+        console.log(`게시글 목록 조회중 에러 발생 => ${e}`);
+        throw new Error('게시글 목록 조회중 문제가 발생했습니다!');
     }
 };
