@@ -2,8 +2,8 @@ const path = require('path');
 const fs = require('fs').promises;
 const boardPath = path.join(__dirname, '../data/boardInfo.json');
 const userPath = path.join(__dirname, '../data/userInfo.json');
+const likePath = path.join(__dirname, '../data/boardLike.json');
 const dayjs = require('dayjs');
-const { stringify } = require('querystring');
 
 const readBoardData = async () => {
     const data = await fs.readFile(boardPath, 'utf8');
@@ -12,6 +12,11 @@ const readBoardData = async () => {
 
 const readUserData = async () => {
     const data = await fs.readFile(userPath, 'utf8');
+    return JSON.parse(data);
+};
+
+const readLikeData = async () => {
+    const data = await fs.readFile(likePath, 'utf8');
     return JSON.parse(data);
 };
 
@@ -175,7 +180,7 @@ exports.getBoardList = async (page, limit) => {
         const startIndex = (page - 1) * limit;
         const lastIndex = page * limit - 1;
 
-        console.log(startIndex);
+        if (!boardData.boards || boardData.boards.length == 0) return 404;
 
         const sortBoards = boardData.boards.sort(
             (a, b) => b.board_id - a.board_id
@@ -206,5 +211,73 @@ exports.getBoardList = async (page, limit) => {
     } catch (e) {
         console.log(`게시글 목록 조회중 에러 발생 => ${e}`);
         throw new Error('게시글 목록 조회중 문제가 발생했습니다!');
+    }
+};
+
+//NOTE: 좋아요 증가
+exports.increaseLike = async (user_id, board_id) => {
+    try {
+        const boardData = await readBoardData();
+        const likeData = await readLikeData();
+        const boardIndex = boardData.boards.findIndex(
+            (board) => board.board_id == board_id
+        );
+        const board = boardData.boards[boardIndex];
+
+        if (!board) return 404;
+
+        const existingLike = likeData.likes.find(
+            (like) => like.board_id == board_id && like.user_id == user_id
+        );
+        if (existingLike) return 400;
+
+        boardData.boards[boardIndex].like_count += 1;
+        likeData.likes.push({ user_id, board_id });
+
+        await fs.writeFile(
+            boardPath,
+            JSON.stringify(boardData, null, 4),
+            'utf8'
+        );
+        await fs.writeFile(likePath, JSON.stringify(likeData, null, 4), 'utf8');
+
+        return { board_id: board_id };
+    } catch (e) {
+        console.log(`좋아요 증가중 에러 발생 =>${e}`);
+        throw new Error('좋아요 증가중 문제가 발생했습니다!');
+    }
+};
+
+//NOTE: 좋아요 감소
+exports.decreaseLike = async (user_id, board_id) => {
+    try {
+        const boardData = await readBoardData();
+        const likeData = await readLikeData();
+        const boardIndex = boardData.boards.findIndex(
+            (board) => board.board_id == board_id
+        );
+        const board = boardData.boards[boardIndex];
+
+        if (!board) return 404;
+
+        const likeIndex = likeData.likes.findIndex(
+            (like) => like.board_id == board_id && like.user_id == user_id
+        );
+        if (likeIndex == -1) return 400;
+
+        boardData.boards[boardIndex].like_count -= 1;
+        likeData.likes.splice(likeIndex, 1);
+
+        await fs.writeFile(
+            boardPath,
+            JSON.stringify(boardData, null, 4),
+            'utf8'
+        );
+        await fs.writeFile(likePath, JSON.stringify(likeData, null, 4), 'utf8');
+
+        return { board_id: board_id };
+    } catch (e) {
+        console.log(`좋아요 감소중 에러 발생 =>${e}`);
+        throw new Error('좋아요 감소중 문제가 발생했습니다!');
     }
 };

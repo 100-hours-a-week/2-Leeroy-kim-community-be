@@ -134,9 +134,80 @@ exports.getBoardList = async (req, res) => {
     try {
         const result = await boardModel.getBoardList(page, limit);
 
+        if (result == 404)
+            return res.status(404).json({
+                message: '게시글이 존재하지 않습니다!',
+                dat: null,
+            });
+
         return res.status(200).json({
             message: '게시글 목록 조회 완료!',
             data: JSON.parse(result),
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            message: '서버에서 에러가 발생했습니다!',
+            data: null,
+        });
+    }
+};
+
+//NOTE: 좋아요 증가
+exports.increaseLike = async (req, res) => {
+    const board_id = req.params.board_id;
+    const user_id = req.user.user_id;
+
+    try {
+        const result = await boardModel.increaseLike(user_id, board_id);
+
+        if (result == 404)
+            return res.status(404).json({
+                message: '존재하지 않는 게시물 입니다.',
+                data: null,
+            });
+
+        if (result == 400)
+            return res.status(400).json({
+                message: '이미 좋아요를 눌렀습니다.',
+                data: null,
+            });
+
+        return res.status(201).json({
+            message: '좋아요 증가 완료',
+            data: result,
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            message: '서버에서 에러가 발생했습니다!',
+            data: null,
+        });
+    }
+};
+
+//NOTE: 좋아요 감소
+exports.decreaseLike = async (req, res) => {
+    const board_id = req.params.board_id;
+    const user_id = req.user.user_id;
+
+    try {
+        const result = await boardModel.decreaseLike(user_id, board_id);
+
+        if (result == 404)
+            return res.status(404).json({
+                message: '존재하지 않는 게시물 입니다.',
+                data: null,
+            });
+
+        if (result == 400)
+            return res.status(400).json({
+                message: '아직 좋아요를 누르지 않았습니다.',
+                data: null,
+            });
+        return res.status(201).json({
+            message: '좋아요 감소 완료',
+            data: null,
         });
     } catch (e) {
         console.log(e);

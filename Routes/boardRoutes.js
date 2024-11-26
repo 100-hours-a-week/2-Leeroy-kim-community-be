@@ -63,4 +63,17 @@ router.delete(
 );
 //NOTE:게시글 목록 조회
 router.get('', cookie.checkCookie, boardController.getBoardList);
+//NOTE;좋아요 증가
+router.post(
+    '/like/:board_id',
+    cookie.checkCookie,
+    boardController.increaseLike
+);
+//NOTE:좋아요 감소
+router.post(
+    '/unlike/:board_id',
+    cookie.checkCookie,
+    boardController.decreaseLike
+);
+
 module.exports = router;
