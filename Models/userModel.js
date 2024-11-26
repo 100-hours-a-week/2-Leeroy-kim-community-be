@@ -1,13 +1,17 @@
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs').promises;
-const dataPath = path.join(__dirname, '../data/userInfo.json');
+const userPath = path.join(__dirname, '../data/userInfo.json');
+
+const readUserData = async () => {
+    const data = await fs.readFile(userPath, 'utf8');
+    return JSON.parse(data);
+};
 
 //NOTE: 로그인 로직
 exports.loginUser = async (email, password) => {
     try {
-        const data = await fs.readFile(dataPath, 'utf8');
-        const userData = JSON.parse(data);
+        const userData = await readUserData();
 
         const user = userData.users.find((user) => user.email === email);
 
@@ -32,8 +36,7 @@ exports.loginUser = async (email, password) => {
 //NOTE: 회원가입 로직
 exports.addUser = async (email, password, nickname, profile_img) => {
     try {
-        const data = await fs.readFile(dataPath, 'utf8');
-        const userData = JSON.parse(data);
+        const userData = await readUserData();
 
         //NOTE: 이메일,닉네임 중복 확인
         const userEmail = userData.users.find((user) => user.email === email);
@@ -63,9 +66,9 @@ exports.addUser = async (email, password, nickname, profile_img) => {
         };
 
         userData.users.push(newUser);
-        await fs.writeFile(dataPath, JSON.stringify(userData, null, 4), 'utf8');
+        await fs.writeFile(userPath, JSON.stringify(userData, null, 4), 'utf8');
 
-        //NOTE: 유저id 반환
+        //NOTE: 회원id 반환
         return newUserId;
     } catch (e) {
         console.log(`회원가입중 에러 발생 => ${e}`);
@@ -73,11 +76,10 @@ exports.addUser = async (email, password, nickname, profile_img) => {
     }
 };
 
-//NOTE: 유저 정보 조회
+//NOTE: 회원 정보 조회
 exports.getUser = async (user_id) => {
     try {
-        const data = await fs.readFile(dataPath, 'utf8');
-        const userData = JSON.parse(data);
+        const userData = await readUserData();
 
         const user = userData.users.find((user) => user.user_id == user_id);
 
@@ -87,21 +89,23 @@ exports.getUser = async (user_id) => {
             user_id: user.user_id,
             email: user.email,
             nickname: user.nickname,
-            profile_img: `http://localhost:5050${user.profile_img}`,
+            profile_img:
+                user.profile_img != null
+                    ? `http://localhost:5050${user.profile_img}`
+                    : null,
         };
 
         return JSON.stringify(userInfo);
     } catch (e) {
-        console.log(`유저 정보를 조회중 에러 발생 => ${e}`);
-        throw new Error('유저 정보를 조회중 에러 발생');
+        console.log(`회원 정보를 조회중 에러 발생 => ${e}`);
+        throw new Error('회원 정보를 조회중 에러 발생');
     }
 };
 
-//NOTE:유저 정보 수정
+//NOTE:회원 정보 수정
 exports.editUser = async (nickname, profile_img, user_id) => {
     try {
-        const data = await fs.readFile(dataPath, 'utf8');
-        const userData = JSON.parse(data);
+        const userData = await readUserData();
 
         const user_index = userData.users.findIndex(
             (user) => user.user_id == user_id
@@ -123,20 +127,19 @@ exports.editUser = async (nickname, profile_img, user_id) => {
             profile_img: profile_img || user.profile_img,
         };
 
-        await fs.writeFile(dataPath, JSON.stringify(userData, null, 4), 'utf8');
+        await fs.writeFile(userPath, JSON.stringify(userData, null, 4), 'utf8');
 
         return user_id;
     } catch (e) {
-        console.log(`유저 정보를 수정중 에러 발생 => ${e}`);
-        throw new Error('유저 정보를 수정중 에러 발생');
+        console.log(`회원 정보를 수정중 에러 발생 => ${e}`);
+        throw new Error('회원 정보를 수정중 에러 발생');
     }
 };
 
 //NOTE: 회원 비밀번호 수정
 exports.editPwd = async (user_id, password) => {
     try {
-        const data = await fs.readFile(dataPath, 'utf8');
-        const userData = JSON.parse(data);
+        const userData = await readUserData();
 
         const user_index = userData.users.findIndex(
             (user) => user.user_id == user_id
@@ -156,7 +159,7 @@ exports.editPwd = async (user_id, password) => {
             salt: salt,
         };
 
-        await fs.writeFile(dataPath, JSON.stringify(userData, null, 4), 'utf8');
+        await fs.writeFile(userPath, JSON.stringify(userData, null, 4), 'utf8');
 
         return null;
     } catch (e) {
@@ -168,8 +171,7 @@ exports.editPwd = async (user_id, password) => {
 //NOTE: 회원 삭제
 exports.delUser = async (user_id) => {
     try {
-        const data = await fs.readFile(dataPath, 'utf8');
-        const userData = JSON.parse(data);
+        const userData = await readUserData();
 
         const user_index = userData.users.findIndex(
             (user) => user.user_id == user_id
@@ -180,7 +182,7 @@ exports.delUser = async (user_id) => {
 
         userData.users.splice(user_index, 1);
 
-        await fs.writeFile(dataPath, JSON.stringify(userData, null, 4), 'utf8');
+        await fs.writeFile(userPath, JSON.stringify(userData, null, 4), 'utf8');
 
         if (user.profile_img) {
             const filePath = path.join(__dirname, '..', user.profile_img);
