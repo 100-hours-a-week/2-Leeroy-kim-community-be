@@ -13,6 +13,12 @@ router.delete(
     commentCtr.delComment
 );
 //NOTE: 댓글 수정
+router.patch(
+    '/:comment_id',
+    cookie.checkCookie,
+    cookie.checkCommentAuth,
+    commentCtr.editComment
+);
 //NOTE: 댓글 조회
 
 module.exports = router;

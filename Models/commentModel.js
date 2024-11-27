@@ -21,7 +21,7 @@ const readBoardData = async () => {
 };
 
 //NOTE: 댓글 생성
-exports.addComments = async (board_id, user_id, inputComment) => {
+exports.addComments = async (board_id, user_id, comment) => {
     try {
         const boardData = await readBoardData();
         const boardIndex = boardData.boards.findIndex(
@@ -53,7 +53,7 @@ exports.addComments = async (board_id, user_id, inputComment) => {
 
         const newComment = {
             comment_id: newId,
-            inputComment,
+            comment,
             comment_date: dayjs().format('YYYY-MM-DD HH:mm:ss'),
             update_date: null,
             user_id: user_id,
@@ -94,8 +94,6 @@ exports.delComment = async (board_id, comment_id) => {
             boardIndex
         ].comment_list.findIndex((comment) => comment.comment_id == comment_id);
 
-        if (commentIndex == -1) return 404;
-
         commentData.boards[boardIndex].comment_list.splice(commentIndex, 1);
 
         const commentCount = commentData.boards[boardIndex].comment_list.length;
@@ -125,4 +123,34 @@ exports.delComment = async (board_id, comment_id) => {
     }
 };
 //NOTE: 댓글 수정
+exports.editComment = async (board_id, comment_id, comment) => {
+    try {
+        const commentData = await readCommentData();
+        const boardIndex = commentData.boards.findIndex(
+            (board) => board.board_id == board_id
+        );
+        const commentIndex = commentData.boards[
+            boardIndex
+        ].comment_list.findIndex((comment) => comment.comment_id == comment_id);
+
+        const newComment =
+            commentData.boards[boardIndex].comment_list[commentIndex];
+        commentData.boards[boardIndex].comment_list[commentIndex] = {
+            ...newComment,
+            comment,
+            update_date: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+        };
+
+        await fs.writeFile(
+            commentPath,
+            JSON.stringify(commentData, null, 4),
+            'utf8'
+        );
+
+        return { comment_id: comment_id };
+    } catch (e) {
+        console.log(`댓글 수정중 에러 발생 => ${e}`);
+        throw new Error('댓글 수정중 문제가 발생했습니다!');
+    }
+};
 //NOTE: 댓글 조회

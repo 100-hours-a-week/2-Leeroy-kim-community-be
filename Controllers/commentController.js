@@ -51,4 +51,33 @@ exports.delComment = async (req, res) => {
     }
 };
 //NOTE: 댓글 수정
+exports.editComment = async (req, res) => {
+    const { board_id, comment_id } = req.info;
+    const { comment } = req.body;
+
+    try {
+        const result = await commentModel.editComment(
+            board_id,
+            comment_id,
+            comment
+        );
+
+        if (result == 404)
+            return res.status(404).json({
+                message: '존재하지 않는 댓글 입니다.',
+                data: null,
+            });
+
+        return res.status(201).json({
+            message: '댓글 수정 완료!',
+            data: result,
+        });
+    } catch (e) {
+        console.log(e);
+        return res.statu(500).json({
+            message: '서버에서 에러가 발생했습니다!',
+            data: null,
+        });
+    }
+};
 //NOTE: 댓글 조회
