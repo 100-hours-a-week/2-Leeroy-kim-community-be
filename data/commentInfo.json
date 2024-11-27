@@ -1,0 +1,35 @@
+{
+    "boards": [
+        {
+            "board_id": 0,
+            "comment_list": [
+                {
+                    "comment_id": 0,
+                    "comment": "첫번째 댓글입니다.",
+                    "comment_date": "2024-11-11 12:11:11",
+                    "updtae_date": "2024-11-11 12:30:45",
+                    "user_id": 0
+                },
+                {
+                    "comment_id": 1,
+                    "comment": "댓글2",
+                    "comment_date": "2024-11-27 01:53:58",
+                    "update_date": null,
+                    "user_id": "1"
+                }
+            ]
+        },
+        {
+            "board_id": "1",
+            "comment_list": [
+                {
+                    "comment_id": 0,
+                    "comment": "댓글1",
+                    "comment_date": "2024-11-27 01:53:39",
+                    "update_date": null,
+                    "user_id": "1"
+                }
+            ]
+        }
+    ]
+}
