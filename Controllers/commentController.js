@@ -24,10 +24,31 @@ exports.addComment = async (req, res) => {
             data: result,
         });
     } catch (e) {
-        console.log(e);
         return res.status(500).json({
             message: '서버에서 에러가 발생했습니다!',
             data: null,
         });
     }
 };
+
+//NOTE: 댓글 삭제
+exports.delComment = async (req, res) => {
+    const { board_id, comment_id } = req.info;
+
+    try {
+        const result = await commentModel.delComment(board_id, comment_id);
+
+        return res.status(201).json({
+            message: '댓글 삭제 완료!',
+            data: result,
+        });
+    } catch (e) {
+        console.log(e);
+        return res.statu(500).json({
+            message: '서버에서 에러가 발생했습니다!',
+            data: null,
+        });
+    }
+};
+//NOTE: 댓글 수정
+//NOTE: 댓글 조회

@@ -62,12 +62,14 @@ exports.addComments = async (board_id, user_id, inputComment) => {
         boardData.boards[boardIndex].comment_count =
             commentData.boards[commentIndex].comment_list.length;
 
+        //NOTE: 댓글 추가
         await fs.writeFile(
             commentPath,
             JSON.stringify(commentData, null, 4),
             'utf8'
         );
 
+        //NOTE: 게시판 댓글 갯수 업데이트
         await fs.writeFile(
             boardPath,
             JSON.stringify(boardData, null, 4),
@@ -80,3 +82,47 @@ exports.addComments = async (board_id, user_id, inputComment) => {
         throw new Error('댓글 생성중 문제가 발생했습니다!');
     }
 };
+
+//NOTE: 댓글 삭제
+exports.delComment = async (board_id, comment_id) => {
+    try {
+        const commentData = await readCommentData();
+        const boardIndex = commentData.boards.findIndex(
+            (board) => board.board_id == board_id
+        );
+        const commentIndex = commentData.boards[
+            boardIndex
+        ].comment_list.findIndex((comment) => comment.comment_id == comment_id);
+
+        if (commentIndex == -1) return 404;
+
+        commentData.boards[boardIndex].comment_list.splice(commentIndex, 1);
+
+        const commentCount = commentData.boards[boardIndex].comment_list.length;
+        const boardData = await readBoardData();
+        const updateBoardIndex = boardData.boards.findIndex(
+            (board) => board.board_id == board_id
+        );
+
+        boardData.boards[updateBoardIndex].comment_count = commentCount;
+        //NOTE: 댓글 삭제
+        await fs.writeFile(
+            commentPath,
+            JSON.stringify(commentData, null, 4),
+            'utf8'
+        );
+        //NOTE: 게시판 댓글 갯수 업데이트
+        await fs.writeFile(
+            boardPath,
+            JSON.stringify(boardData, null, 4),
+            'utf8'
+        );
+
+        return { comment_id: comment_id };
+    } catch (e) {
+        console.log(`댓글 삭제중 에러 발생 => ${e}`);
+        throw new Error('댓글 생성중 문제가 발생했습니다!');
+    }
+};
+//NOTE: 댓글 수정
+//NOTE: 댓글 조회
