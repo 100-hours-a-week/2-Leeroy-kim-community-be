@@ -31,6 +31,31 @@ exports.addComment = async (req, res) => {
     }
 };
 
+//NOTE: 댓글 조회
+exports.getComment = async (req, res) => {
+    const board_id = req.params.board_id;
+
+    try {
+        const result = await commentModel.getComment(board_id);
+
+        if (result == 404)
+            return res.status(404).json({
+                message: '댓글이 존재하지 않습니다!',
+                dat: null,
+            });
+
+        return res.status(200).json({
+            message: '댓글 조회 완료!',
+            data: JSON.parse(result),
+        });
+    } catch (e) {
+        return res.status(500).json({
+            message: '서버에서 에러가 발생했습니다!',
+            data: null,
+        });
+    }
+};
+
 //NOTE: 댓글 삭제
 exports.delComment = async (req, res) => {
     const { board_id, comment_id } = req.info;
@@ -80,4 +105,3 @@ exports.editComment = async (req, res) => {
         });
     }
 };
-//NOTE: 댓글 조회
