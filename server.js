@@ -7,7 +7,6 @@ require('dotenv').config();
 
 const app = express();
 const port = 5050;
-console.log('CLIENT_URL:', process.env.CLIENT_URL);
 app.use(express.json());
 const cookieSecret = process.env.COOKIE_SECRET_KEY;
 app.use(cookieParser(cookieSecret));
