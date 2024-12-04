@@ -15,6 +15,14 @@
             "salt": "O1ybH5ZWqp+G1Nn9T16cXhxlGnnKp/USK2bGhDVCKA7/b8DyARuPdh2fPXoN7OBuGJIrl02wZhYsWbeqffiSzo1hs3IegiqJ6UJheZdg2eNTeTKsROsr1ZMrYZagaZOzg1VSBsaUMLeBJ13IobK9+lkushOgjMhINQjEv6DjNfI=",
             "nickname": "닉네임1",
             "profile_img": "/resource/profileImg/1732379144075-0.697130792787513.jpeg"
+        },
+        {
+            "user_id": 2,
+            "email": "test3@naver.com",
+            "password": "55ef19b827b13d3a9902072dedcdf7cacd31e1acddf58a139ac110595c537005",
+            "salt": "75EUjUUYZX5X6Hrl/H3EDl36gEP6YWdgTDIo44edBzp0fbcZquCNoSmZWcYQIsJKxDD0EwR3zLiNtsm5l5NIdsuHJLGKb5oaBpLjLVn9Fh82QctxL2Xd2bS6esCMLU0ds/K/A92ptswc8DbVt2Emx+anuzrG17N8u0CnoTPnozE=",
+            "nickname": "스파이더맨",
+            "profile_img": "/resource/profileImg/1733333807983-0.12597359557878396.jpeg"
         }
     ]
 }

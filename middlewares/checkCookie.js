@@ -17,18 +17,6 @@ exports.checkCookie = (req, res, next) => {
     next();
 };
 
-//NOTE: 회원로직 권한 검사
-exports.checkAuth = (req, res, next) => {
-    if (req.params.id != req.user.user_id) {
-        return res.status(403).json({
-            message: '권한이 없습니다.',
-            data: null,
-        });
-    }
-
-    next();
-};
-
 //NOTE: 게시글 권한 검사
 exports.checkBoardAuth = async (req, res, next) => {
     const board_id = req.params.board_id;

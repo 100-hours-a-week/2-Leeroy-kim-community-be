@@ -114,10 +114,9 @@ exports.signup = async (req, res) => {
 
 //NOTE: 회원정보 조회
 exports.getUser = async (req, res) => {
-    const params_id = await req.params.id;
-
+    const user_id = req.user.user_id;
     try {
-        const result = await userModel.getUser(params_id);
+        const result = await userModel.getUser(user_id);
 
         if (result == 404)
             return res.status(404).json({
@@ -142,7 +141,7 @@ exports.getUser = async (req, res) => {
 exports.editUser = async (req, res) => {
     const { nickname } = req.body;
     const profile_img = req.file && `/resource/profileImg/${req.file.filename}`;
-    const params_id = req.user.user_id;
+    const user_id = req.user.user_id;
 
     if (!nickname && !profile_img)
         return res.status(400).json({
@@ -151,11 +150,7 @@ exports.editUser = async (req, res) => {
         });
 
     try {
-        const result = await userModel.editUser(
-            nickname,
-            profile_img,
-            params_id
-        );
+        const result = await userModel.editUser(nickname, profile_img, user_id);
 
         if (result == 404)
             return res.status(404).json({

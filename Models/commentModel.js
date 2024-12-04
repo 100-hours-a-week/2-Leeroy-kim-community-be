@@ -4,7 +4,6 @@ const commentPath = path.join(__dirname, '../data/commentInfo.json');
 const userPath = path.join(__dirname, '../data/userInfo.json');
 const boardPath = path.join(__dirname, '../data/boardInfo.json');
 const dayjs = require('dayjs');
-const { cp } = require('fs');
 
 const readCommentData = async () => {
     const data = await fs.readFile(commentPath, 'utf8');
@@ -92,7 +91,7 @@ exports.getComment = async (board_id) => {
         const board = commentData.boards.find(
             (board) => board.board_id == board_id
         );
-        if (!board.comment_list || board.comment_list.length == 0) return 404;
+        if (!board.comment_list || board.comment_list.length == 0) return 200;
 
         const result = board.comment_list.map((comment) => {
             const user = userData.users.find(
