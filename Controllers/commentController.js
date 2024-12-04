@@ -38,8 +38,8 @@ exports.getComment = async (req, res) => {
     try {
         const result = await commentModel.getComment(board_id);
 
-        if (result == 404)
-            return res.status(404).json({
+        if (result == 200)
+            return res.status(200).json({
                 message: '댓글이 존재하지 않습니다!',
                 dat: null,
             });
