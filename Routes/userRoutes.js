@@ -40,27 +40,17 @@ router.post('/login', userController.login);
 router.post('/signup', upload.single('profile_img'), userController.signup);
 router.post('/logout', cookie.checkCookie, userController.logout);
 //NOTE:회원 정보 조회
-router.get('/', cookie.checkCookie, cookie.checkAuth, userController.getUser);
+router.get('', cookie.checkCookie, userController.getUser);
 //NOTE:회원 정보 수정
 router.patch(
-    '/',
+    '',
     cookie.checkCookie,
-    cookie.checkAuth,
     upload.single('profile_img'),
     userController.editUser
 );
+
 //NOTE:회원 비밀번호 수정
-router.patch(
-    '/password/',
-    cookie.checkCookie,
-    cookie.checkAuth,
-    userController.editPwd
-);
+router.patch('/password', cookie.checkCookie, userController.editPwd);
 //NOTE:회원 탈퇴
-router.delete(
-    '/',
-    cookie.checkCookie,
-    cookie.checkAuth,
-    userController.delUser
-);
+router.delete('', cookie.checkCookie, userController.delUser);
 module.exports = router;
