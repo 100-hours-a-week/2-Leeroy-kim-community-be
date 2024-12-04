@@ -91,7 +91,9 @@ exports.getComment = async (board_id) => {
         const board = commentData.boards.find(
             (board) => board.board_id == board_id
         );
-        if (!board.comment_list || board.comment_list.length == 0) return 200;
+
+        if (!board || !board.comment_list || board.comment_list.length == 0)
+            return 200;
 
         const result = board.comment_list.map((comment) => {
             const user = userData.users.find(
