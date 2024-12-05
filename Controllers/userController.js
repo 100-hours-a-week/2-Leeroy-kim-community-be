@@ -152,6 +152,12 @@ exports.editUser = async (req, res) => {
     try {
         const result = await userModel.editUser(nickname, profile_img, user_id);
 
+        if (result == 400)
+            return res.status(404).json({
+                message: '중복된 닉네임 입니다.',
+                data: null,
+            });
+
         if (result == 404)
             return res.status(404).json({
                 message: '존재하지 않는 회웝입니다.',
