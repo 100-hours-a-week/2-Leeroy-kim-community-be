@@ -153,7 +153,7 @@ exports.editUser = async (req, res) => {
         const result = await userModel.editUser(nickname, profile_img, user_id);
 
         if (result == 400)
-            return res.status(404).json({
+            return res.status(400).json({
                 message: '중복된 닉네임 입니다.',
                 data: null,
             });

@@ -74,5 +74,7 @@ router.post(
     cookie.checkCookie,
     boardController.decreaseLike
 );
+//NOTE:좋아요 유무
+router.get('/like/:board_id', cookie.checkCookie, boardController.getLike);
 
 module.exports = router;

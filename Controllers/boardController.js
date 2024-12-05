@@ -217,3 +217,24 @@ exports.decreaseLike = async (req, res) => {
         });
     }
 };
+
+//NOTE: 좋아요 유무
+exports.getLike = async (req, res) => {
+    const board_id = req.params.board_id;
+    const user_id = req.user.user_id;
+
+    try {
+        const result = await boardModel.getLike(user_id, board_id);
+
+        return res.status(200).json({
+            message: '좋아요 유무 응답 완료',
+            data: result,
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            message: '서버에서 에러가 발생했습니다!',
+            data: null,
+        });
+    }
+};

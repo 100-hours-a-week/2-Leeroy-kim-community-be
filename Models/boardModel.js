@@ -281,3 +281,21 @@ exports.decreaseLike = async (user_id, board_id) => {
         throw new Error('좋아요 감소중 문제가 발생했습니다!');
     }
 };
+
+//NOTE: 좋아요 유무
+exports.getLike = async (user_id, board_id) => {
+    try {
+        const likeData = await readLikeData();
+        const like = likeData.likes.find((like) => like.user_id == user_id);
+        if (!like) return false;
+
+        if (like.board_id == board_id) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (e) {
+        console.log(`좋아요 확인중 에러 발생 =>${e}`);
+        throw new Error('좋아요 확인중 문제가 발생했습니다!');
+    }
+};
