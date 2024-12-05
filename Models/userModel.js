@@ -113,6 +113,11 @@ exports.editUser = async (nickname, profile_img, user_id) => {
         const user = userData.users[user_index];
         if (!user) return 404;
 
+        const userNickname = userData.users.find(
+            (user) => user.nickname === nickname
+        );
+        if (userNickname) return 400;
+
         if (user.profile_img && profile_img) {
             const filePath = path.join(__dirname, '..', user.profile_img);
 
