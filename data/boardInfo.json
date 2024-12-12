@@ -22,7 +22,19 @@
             "like_count": 0,
             "view_count": 0,
             "comment_count": 0,
-            "user_id": "1"
+            "user_id": "2"
+        },
+        {
+            "board_id": 4,
+            "title": "점심 뭐먹지??",
+            "content": "버거킹 먹고 싶다 흐헤흐헤흐헤\r\n라고 했지만 김밥 사먹을 예정\r\n좋은날 김밥~",
+            "content_img": "/resource/boardImg/1733373695710-0.6067501908347317.png",
+            "board_date": "2024-12-05 11:19:37",
+            "update_date": "2024-12-05 17:39:31",
+            "like_count": 2,
+            "view_count": 94,
+            "comment_count": 1,
+            "user_id": "2"
         }
     ]
 }
