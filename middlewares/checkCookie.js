@@ -5,7 +5,7 @@ const commentPath = path.join(__dirname, '../data/commentInfo.json');
 
 //NOTE: 쿠키 유효 검사
 exports.checkCookie = (req, res, next) => {
-    const user_id = req.cookies.user_id;
+    const user_id = req.signedCookies.user_id;
 
     if (!user_id)
         return res.status(401).json({
