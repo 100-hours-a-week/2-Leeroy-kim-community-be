@@ -26,7 +26,9 @@ exports.login = async (req, res) => {
             });
 
         res.cookie('user_id', result.user_id, {
-            httpOnly: true,
+            signed: true, //서명하여 무결성 검증
+            sameSite: 'Strict', //동일 사이트에서만 전송되게 함
+            httpOnly: true, //js로 쿠키를 읽거나 조작을 못하게 함
             maxAge: 60 * 60 * 1000,
         });
 
@@ -50,7 +52,9 @@ exports.login = async (req, res) => {
 exports.logout = async (req, res) => {
     try {
         res.clearCookie('user_id', {
+            signed: true,
             httpOnly: true,
+            sameSite: 'Strict',
         });
 
         return res.status(200).json({

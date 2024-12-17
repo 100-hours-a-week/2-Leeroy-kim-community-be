@@ -3,6 +3,9 @@ const router = require('./Routes/router');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const timeout = require('connect-timeout');
+const RateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 require('dotenv').config();
 
 const app = express();
@@ -18,7 +21,34 @@ app.use(
     })
 );
 
-app.use('/api', router);
+app.use(timeout('5s'));
+//api 요청 제한 미들웨어
+exports.apiLimiter = RateLimit({
+    windowMs: 60 * 10000, //1분
+    max: 50,
+    handler(req, res) {
+        res.status(this.statusCode).json({
+            code: this.statusCode, //RateLimit의 반환객체는 429code를 default로 반환하게 되어있음
+            message: '1분에 5번만 요청 할 수 있습니다.',
+        });
+    },
+});
+
+// CSP 설정
+const cspOptions = {
+    directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'"],
+        imgSrc: ["'self'"],
+    },
+};
+
+app.use(helmet());
+app.use(helmet.contentSecurityPolicy(cspOptions));
+app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
+
+app.use('/api', this.apiLimiter, router);
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
