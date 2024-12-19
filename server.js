@@ -24,12 +24,12 @@ app.use(
 app.use(timeout('5s'));
 //api 요청 제한 미들웨어
 exports.apiLimiter = RateLimit({
-    windowMs: 60 * 10000, //1분
+    windowMs: 60 * 1000, //1분
     max: 50,
     handler(req, res) {
         res.status(this.statusCode).json({
             code: this.statusCode, //RateLimit의 반환객체는 429code를 default로 반환하게 되어있음
-            message: '1분에 5번만 요청 할 수 있습니다.',
+            message: '1분에 50번만 요청 할 수 있습니다.',
         });
     },
 });
