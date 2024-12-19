@@ -15,7 +15,7 @@ const cookieSecret = process.env.COOKIE_SECRET_KEY;
 app.use(cookieParser(cookieSecret));
 app.use(
     cors({
-        origin: process.env.CLIENT_URL,
+        origin: [process.env.CLIENT_URL],
         methods: ['GET', 'POST', 'PATCH', 'DELETE'],
         credentials: true,
     })

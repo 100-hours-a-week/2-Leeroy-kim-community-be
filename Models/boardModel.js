@@ -4,6 +4,7 @@ const boardPath = path.join(__dirname, '../data/boardInfo.json');
 const userPath = path.join(__dirname, '../data/userInfo.json');
 const likePath = path.join(__dirname, '../data/boardLike.json');
 const dayjs = require('dayjs');
+require('dotenv').config();
 
 const readBoardData = async () => {
     const data = await fs.readFile(boardPath, 'utf8');
@@ -83,12 +84,12 @@ exports.getBoard = async (board_id) => {
             ...board,
             content_img:
                 board.content_img != null
-                    ? `http://localhost:5050${board.content_img}`
+                    ? `http://${process.env.BACKEND_URL}:5050${board.content_img}`
                     : null,
             nickname: user.nickname,
             profile_img:
                 user.profile_img != null
-                    ? `http://localhost:5050${user.profile_img}`
+                    ? `http://${process.env.BACKEND_URL}:5050${user.profile_img}`
                     : null,
         };
 
@@ -197,12 +198,12 @@ exports.getBoardList = async (page, limit) => {
                     ...board,
                     content_img:
                         board.content_img != null
-                            ? `http://localhost:5050${board.content_img}`
+                            ? `http://${process.env.BACKEND_URL}:5050${board.content_img}`
                             : null,
                     nickname: user.nickname,
                     profile_img:
                         user.profile_img != null
-                            ? `http://localhost:5050${user.profile_img}`
+                            ? `http://${process.env.BACKEND_URL}:5050${user.profile_img}`
                             : null,
                 };
             });
