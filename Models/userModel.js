@@ -91,7 +91,7 @@ exports.getUser = async (user_id) => {
             nickname: user.nickname,
             profile_img:
                 user.profile_img != null
-                    ? `http://localhost:5050${user.profile_img}`
+                    ? `http://${process.env.BACKEND_URL}:5050${user.profile_img}`
                     : null,
         };
 
