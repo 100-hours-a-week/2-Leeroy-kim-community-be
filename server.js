@@ -6,6 +6,7 @@ const cors = require('cors');
 const timeout = require('connect-timeout');
 const RateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const db = require('./config/db');
 require('dotenv').config();
 
 const app = express();
@@ -55,6 +56,15 @@ app.get('/', (req, res) => {
 });
 
 app.use('/resource', express.static(path.join(__dirname, 'resource')));
+
+db.pool.connect((e) => {
+    if (e) {
+        console.error('❌ Database connection failed:', e.message);
+        process.exit(1);
+    } else {
+        console.log('✅ Connected to the MySQL database!');
+    }
+});
 
 app.listen(port, () => {
     console.log(`Sever is running on http://localhost:${port}`);
