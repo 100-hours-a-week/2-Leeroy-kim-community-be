@@ -1,7 +1,9 @@
+const e = require('connect-timeout');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs').promises;
 const userPath = path.join(__dirname, '../data/userInfo.json');
+const pool = require('../config/db');
 
 const readUserData = async () => {
     const data = await fs.readFile(userPath, 'utf8');
@@ -11,44 +13,42 @@ const readUserData = async () => {
 //NOTE: 로그인 로직
 exports.loginUser = async (email, password) => {
     try {
-        const userData = await readUserData();
+        const [rows] = await pool
+            .promise()
+            .query('SELECT * FROM user WHERE email = ?', [email]);
 
-        const user = userData.users.find((user) => user.email === email);
+        if (rows.length > 0) {
+            const inputPassword = await crypto
+                .createHash('sha256')
+                .update(password + rows[0].salt)
+                .digest('hex');
 
-        if (!user) return 404;
-
-        const inputPassword = await crypto
-            .createHash('sha256')
-            .update(password + user.salt)
-            .digest('hex');
-
-        if (inputPassword === user.password) {
-            return { user_id: user.user_id, nickname: user.nickname };
+            if (inputPassword === rows[0].password) {
+                return { user_id: rows[0].user_id, nickname: rows[0].nickname };
+            } else {
+                return 400;
+            }
         } else {
-            return 400;
+            return 404;
         }
     } catch (e) {
-        console.log(`로그인 로직 에러 발생 => ${e}`);
-        throw new Error('로그인중 문제가 발생했습니다!');
+        throw new Error(`로그인중 문제가 발생했습니다! => ${e}`);
     }
 };
 
 //NOTE: 회원가입 로직
 exports.addUser = async (email, password, nickname, profile_img) => {
     try {
-        const userData = await readUserData();
-
         //NOTE: 이메일,닉네임 중복 확인
-        const userEmail = userData.users.find((user) => user.email === email);
-        if (userEmail) return 4001;
-        const userNickname = userData.users.find(
-            (user) => user.nickname === nickname
-        );
-        if (userNickname) return 4002;
+        const [emailRows] = await pool
+            .promise()
+            .query('SELECT * FROM user WHERE email = ?', [email]);
+        if (emailRows.length > 0) return 4001;
 
-        //NOTE: 이전 user_id + 1한 값을 새로운 user_id로 할당
-        const lastUser = userData.users.length - 1;
-        const newUserId = userData.users[lastUser].user_id + 1;
+        const [nickanmeRows] = await pool
+            .promise()
+            .query('SELECT * FROM user WHERE nickname = ?', [nickname]);
+        if (nickanmeRows.length > 0) return 4002;
 
         const salt = await crypto.randomBytes(128).toString('base64');
         password = await crypto
@@ -56,89 +56,83 @@ exports.addUser = async (email, password, nickname, profile_img) => {
             .update(password + salt)
             .digest('hex');
 
-        const newUser = {
-            user_id: newUserId,
-            email: email,
-            password: password,
-            salt: salt,
-            nickname: nickname,
-            profile_img: profile_img,
-        };
+        const insertQuery =
+            'INSERT INTO user(email,password,salt,nickname,profile_img) VALUES (?, ?, ?, ?, ?)';
+        const [result] = await pool
+            .promise()
+            .query(insertQuery, [email, password, salt, nickname, profile_img]);
 
-        userData.users.push(newUser);
-        await fs.writeFile(userPath, JSON.stringify(userData, null, 4), 'utf8');
-
-        //NOTE: 회원id 반환
-        return newUserId;
+        return result.insertId;
     } catch (e) {
-        console.log(`회원가입중 에러 발생 => ${e}`);
-        throw new Error('회원가입중 문제가 발생했습니다!');
+        throw new Error(`회원가입중 문제가 발생했습니다! => ${e}`);
     }
 };
 
 //NOTE: 회원 정보 조회
 exports.getUser = async (user_id) => {
     try {
-        const userData = await readUserData();
+        const [rows] = await pool
+            .promise()
+            .query('SELECT * FROM user WHERE user_id = ?', [user_id]);
 
-        const user = userData.users.find((user) => user.user_id == user_id);
+        if (rows.length > 0) {
+            const userInfo = {
+                user_id: rows[0].user_id,
+                email: rows[0].email,
+                nickname: rows[0].nickname,
+                profile_img:
+                    rows[0].profile_img != null
+                        ? `http://${process.env.BACKEND_URL}:5050${rows[0].profile_img}`
+                        : null,
+            };
 
-        if (!user) return 404;
-
-        const userInfo = {
-            user_id: user.user_id,
-            email: user.email,
-            nickname: user.nickname,
-            profile_img:
-                user.profile_img != null
-                    ? `http://${process.env.BACKEND_URL}:5050${user.profile_img}`
-                    : null,
-        };
-
-        return JSON.stringify(userInfo);
+            return JSON.stringify(userInfo);
+        } else {
+            return 404;
+        }
     } catch (e) {
-        console.log(`회원 정보를 조회중 에러 발생 => ${e}`);
-        throw new Error('회원 정보를 조회중 에러 발생');
+        throw new Error(`회원 정보를 조회중 에러 발생 => ${e}`);
     }
 };
 
 //NOTE:회원 정보 수정
 exports.editUser = async (nickname, profile_img, user_id) => {
     try {
-        const userData = await readUserData();
+        const [rows] = await pool
+            .promise()
+            .query('SELECT * FROM user WHERE user_id = ?', [user_id]);
 
-        const user_index = userData.users.findIndex(
-            (user) => user.user_id == user_id
-        );
-        const user = userData.users[user_index];
-        if (!user) return 404;
+        if (rows.length > 0) {
+            const [nicknameRows] = await pool
+                .promise()
+                .query('SELECT * FROM user WHERE nickname = ?', [nickname]);
 
-        const userNickname = userData.users.find(
-            (user) => user.nickname === nickname
-        );
+            if (nicknameRows.length > 0 && user_id != nicknameRows[0].user_id)
+                return 400;
 
-        if (userNickname && user_id != userNickname.user_id) return 400;
+            if (profile_img) {
+                const filePath = path.join(__dirname, '..', user.profile_img);
 
-        if (user.profile_img && profile_img) {
-            const filePath = path.join(__dirname, '..', user.profile_img);
+                await fs.unlink(filePath, (e) => {
+                    if (e) throw new Error(`이미지 삭제 실패 => ${e}`);
+                });
+            }
 
-            await fs.unlink(filePath, (e) => {
-                if (e) throw new Error(`이미지 삭제 실패 => ${e}`);
-            });
+            const updateQuery = `
+                UPDATE user
+                    SET nickname = IFNULL(?, nickname), profile_img = IFNULL(?, profile_img)
+                    WHERE user_id = ?;
+            `;
+            const [result] = await pool
+                .promise()
+                .query(updateQuery, [nickname, profile_img, user_id]);
+
+            if (result.affectedRows > 0) return user_id;
+        } else {
+            return 404;
         }
-
-        userData.users[user_index] = {
-            ...user,
-            nickname: nickname || user.nickname,
-            profile_img: profile_img || user.profile_img,
-        };
-
-        await fs.writeFile(userPath, JSON.stringify(userData, null, 4), 'utf8');
-
-        return user_id;
     } catch (e) {
-        console.log(`회원 정보를 수정중 에러 발생 => ${e}`);
-        throw new Error('회원 정보를 수정중 에러 발생');
+        throw new Error(`회원 정보를 수정중 에러 발생 => ${e}`);
     }
 };
 

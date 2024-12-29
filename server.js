@@ -6,7 +6,7 @@ const cors = require('cors');
 const timeout = require('connect-timeout');
 const RateLimit = require('express-rate-limit');
 const helmet = require('helmet');
-const db = require('./config/db');
+const pool = require('./config/db');
 require('dotenv').config();
 
 const app = express();
@@ -57,7 +57,7 @@ app.get('/', (req, res) => {
 
 app.use('/resource', express.static(path.join(__dirname, 'resource')));
 
-db.pool.connect((e) => {
+pool.connect((e) => {
     if (e) {
         console.error('❌ Database connection failed:', e.message);
         process.exit(1);
