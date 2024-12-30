@@ -1,14 +1,7 @@
-const e = require('connect-timeout');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs').promises;
-const userPath = path.join(__dirname, '../data/userInfo.json');
 const pool = require('../config/db');
-
-const readUserData = async () => {
-    const data = await fs.readFile(userPath, 'utf8');
-    return JSON.parse(data);
-};
 
 //NOTE: 로그인 로직
 exports.loginUser = async (email, password) => {
@@ -139,62 +132,64 @@ exports.editUser = async (nickname, profile_img, user_id) => {
 //NOTE: 회원 비밀번호 수정
 exports.editPwd = async (user_id, password) => {
     try {
-        const userData = await readUserData();
+        const [rows] = await pool
+            .promise()
+            .query('SELECT * FROM user WHERE user_id = ?', [user_id]);
 
-        const user_index = userData.users.findIndex(
-            (user) => user.user_id == user_id
-        );
-        const user = userData.users[user_index];
-        if (!user) return 404;
+        if (rows.length > 0) {
+            const salt = await crypto.randomBytes(128).toString('base64');
+            password = await crypto
+                .createHash('sha256')
+                .update(password + salt)
+                .digest('hex');
 
-        const salt = await crypto.randomBytes(128).toString('base64');
-        password = await crypto
-            .createHash('sha256')
-            .update(password + salt)
-            .digest('hex');
-
-        userData.users[user_index] = {
-            ...user,
-            password: password,
-            salt: salt,
-        };
-
-        await fs.writeFile(userPath, JSON.stringify(userData, null, 4), 'utf8');
-
-        return null;
+            const [result] = await pool
+                .promise()
+                .query(
+                    'UPDATE user SET password = ?, salt = ? WHERE user_id = ?',
+                    [password, salt, user_id]
+                );
+            if (result.affectedRows > 0) return null;
+        } else {
+            return 404;
+        }
     } catch (e) {
-        console.log(`회원 비밀번호 수정중 에러 발생 =>${e}`);
-        throw new Error('회원 비밀번호 수정중 에러 발생');
+        throw new Error(`회원 비밀번호 수정중 에러 발생 => ${e}`);
     }
 };
 
 //NOTE: 회원 삭제
 exports.delUser = async (user_id) => {
     try {
-        const userData = await readUserData();
+        const [rows] = await pool
+            .promise()
+            .query('SELECT * FROM user WHERE user_id = ?', [user_id]);
+        if (rows.length > 0) {
+            const [result] = await pool
+                .promise()
+                .query('DELETE FROM user WHERE user_id = ?', [user_id]);
 
-        const user_index = userData.users.findIndex(
-            (user) => user.user_id == user_id
-        );
+            if (result.affectedRows > 0) {
+                if (rows[0].profile_img) {
+                    const filePath = path.join(
+                        __dirname,
+                        '..',
+                        rows[0].profile_img
+                    );
 
-        const user = userData.users[user_index];
-        if (!user) return 404;
+                    await fs.unlink(filePath, (e) => {
+                        if (e) throw new Error(`이미지 삭제 실패 => ${e}`);
+                    });
+                }
 
-        userData.users.splice(user_index, 1);
+                return { user_id: user_id };
+            }
 
-        await fs.writeFile(userPath, JSON.stringify(userData, null, 4), 'utf8');
-
-        if (user.profile_img) {
-            const filePath = path.join(__dirname, '..', user.profile_img);
-
-            await fs.unlink(filePath, (e) => {
-                if (e) throw new Error(`이미지 삭제 실패 => ${e}`);
-            });
+            throw new Error('회원 삭제중 에러 발생!');
+        } else {
+            return 404;
         }
-
-        return { user_id: user_id };
     } catch (e) {
-        console.log(`회원 삭제중 에러 발생 =>${e}`);
-        throw new Error('회원 삭제중 에러 발생!');
+        throw new Error(`회원 삭제중 에러 발생 => ${e}`);
     }
 };
