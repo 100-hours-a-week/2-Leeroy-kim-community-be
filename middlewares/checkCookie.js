@@ -1,4 +1,5 @@
 const path = require('path');
+const pool = require('../config/db');
 const fs = require('fs').promises;
 const boardPath = path.join(__dirname, '../data/boardInfo.json');
 const commentPath = path.join(__dirname, '../data/commentInfo.json');
@@ -20,13 +21,11 @@ exports.checkCookie = (req, res, next) => {
 //NOTE: 게시글 권한 검사
 exports.checkBoardAuth = async (req, res, next) => {
     const board_id = req.params.board_id;
-    const data = await fs.readFile(boardPath, 'utf8');
-    const boardData = JSON.parse(data);
+    const [[write_id]] = await pool
+        .promise()
+        .query('SELECT user_id FROM boardInfo WHERE board_id = ?', [board_id]);
 
-    const board = boardData.boards.find((board) => board.board_id == board_id);
-    const write_id = board.user_id;
-
-    if (write_id != req.user.user_id) {
+    if (write_id.user_id != req.user.user_id) {
         return res.status(403).json({
             message: '권한이 없습니다.',
             data: null,

@@ -1,302 +1,288 @@
 const path = require('path');
 const fs = require('fs').promises;
-const boardPath = path.join(__dirname, '../data/boardInfo.json');
-const userPath = path.join(__dirname, '../data/userInfo.json');
-const likePath = path.join(__dirname, '../data/boardLike.json');
 const dayjs = require('dayjs');
+const pool = require('../config/db');
 require('dotenv').config();
 
-const readBoardData = async () => {
-    const data = await fs.readFile(boardPath, 'utf8');
-    return JSON.parse(data);
-};
-
-const readUserData = async () => {
-    const data = await fs.readFile(userPath, 'utf8');
-    return JSON.parse(data);
-};
-
-const readLikeData = async () => {
-    const data = await fs.readFile(likePath, 'utf8');
-    return JSON.parse(data);
-};
+const getBoardQuery = 'SELECT * FROM boardInfo WHERE board_id = ?';
 
 //NOTE: 게시글 작성
 exports.addBoard = async (user_id, title, content, content_img) => {
     try {
-        const boardData = await readBoardData();
-
-        const lastBoard = boardData.boards.length - 1;
-        const newBoardId = boardData.boards[lastBoard].board_id + 1;
-
-        const newBoard = {
-            board_id: newBoardId,
+        const addboardQueyr = `
+            INSERT INTO boardInfo(title,content,content_img,board_date,user_id) VALUES(?)
+        `;
+        const values = [
             title,
             content,
-            content_img: content_img,
-            board_date: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-            update_date: null,
-            like_count: 0,
-            view_count: 0,
-            comment_count: 0,
+            content_img || null,
+            dayjs().format('YYYY-MM-DD HH:mm:ss'),
             user_id,
-        };
+        ];
+        const [result] = await pool.promise().query(addboardQueyr, [values]);
 
-        boardData.boards.push(newBoard);
-        await fs.writeFile(
-            boardPath,
-            JSON.stringify(boardData, null, 4),
-            'utf8'
-        );
-
-        return { board_id: newBoardId };
+        if (result.affectedRows > 0) {
+            return result.insertId;
+        } else {
+            throw new Error('게시글 저장중 에러 발생');
+        }
     } catch (e) {
-        console.log(`게시글 작성중 에러 발생 => ${e}`);
-        throw new Error('게시글 작성중 문제가 발생했습니다!');
+        throw new Error(`게시글 작성중 에러 발생 => ${e}`);
     }
 };
 
 //NOTE: 게시글 상세조회
 exports.getBoard = async (board_id) => {
     try {
-        const boardData = await readBoardData();
-        const boardId = boardData.boards.findIndex(
-            (board) => board.board_id == board_id
-        );
-        const board = boardData.boards[boardId];
-        if (!board) return 4041;
+        const [boardRows] = await pool
+            .promise()
+            .query(getBoardQuery, [board_id]);
+        if (boardRows.length === 0) return 4041;
 
-        const userData = await readUserData();
-        const user = userData.users.find(
-            (user) => user.user_id == board.user_id
-        );
+        const [userRows] = await pool
+            .promise()
+            .query('SELECT * FROM user WHERE user_id = ?', [
+                boardRows[0].user_id,
+            ]);
+        if (userRows.length === 0) return 4042;
 
-        if (!user) return 4042;
-
-        boardData.boards[boardId].view_count += 1;
-        await fs.writeFile(
-            boardPath,
-            JSON.stringify(boardData, null, 4),
-            'utf8'
-        );
+        //조회수 증가
+        await pool
+            .promise()
+            .query(
+                'UPDATE boardInfo SET view_count = view_count + 1 WHERE board_id = ?',
+                [board_id]
+            );
 
         const boardInfo = {
-            ...board,
+            board_id: boardRows[0].board_id,
+            title: boardRows[0].title,
+            content: boardRows[0].content,
             content_img:
-                board.content_img != null
-                    ? `http://${process.env.BACKEND_URL}:5050${board.content_img}`
+                boardRows[0].content_img != null
+                    ? `http://${process.env.BACKEND_URL}:5050${boardRows[0].content_img}`
                     : null,
-            nickname: user.nickname,
+            board_date: boardRows[0].board_date,
+            update_date: boardRows[0].update_date,
+            like_count: boardRows[0].like_count,
+            view_count: boardRows[0].view_count + 1,
+            comment_count: boardRows[0].comment_count,
+            user_id: boardRows[0].user_id,
+            nickname: userRows[0].nickname,
             profile_img:
-                user.profile_img != null
-                    ? `http://${process.env.BACKEND_URL}:5050${user.profile_img}`
+                userRows[0].profile_img != null
+                    ? `http://${process.env.BACKEND_URL}:5050${userRows[0].profile_img}`
                     : null,
         };
 
         return JSON.stringify(boardInfo);
     } catch (e) {
-        console.log(`게시글 조회중 에러 발생 => ${e}`);
-        throw new Error('게시글 조회중 문제가 발생했습니다!');
+        throw new Error(`게시글 조회중 에러 발생 => ${e}`);
     }
 };
 
 //NOTE: 게시글 수정
 exports.editBoard = async (board_id, title, content, content_img) => {
     try {
-        const boardData = await readBoardData();
-        const boardIndex = boardData.boards.findIndex(
-            (board) => board.board_id == board_id
-        );
-        const board = boardData.boards[boardIndex];
-        if (!board) return 404;
+        const [rows] = await pool.promise().query(getBoardQuery, [board_id]);
+        if (rows.length === 0) return 404;
 
-        if (board.content_img && content_img) {
-            const filePath = path.join(__dirname, '..', board.content_img);
+        if (rows[0].content_img && content_img) {
+            const filePath = path.join(__dirname, '..', rows[0].content_img);
 
             await fs.unlink(filePath, (e) => {
                 if (e) throw new Error(`게시글 이미지 삭제 실패 =>${e}`);
             });
         }
+        const updateBoardQuery = `
+            UPDATE boardInfo 
+            SET 
+                title = IFNULL(?, title), 
+                content = IFNULL(?, content), 
+                content_img = IFNULL(?, content_img), 
+                update_date = ?
+            WHERE board_id = ?
+        `;
+        const values = [
+            title,
+            content,
+            content_img,
+            dayjs().format('YYYY-MM-DD HH:mm:ss'),
+            board_id,
+        ];
 
-        boardData.boards[boardIndex] = {
-            ...board,
-            title: title || board.title,
-            update_date: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-            content: content || board.content,
-            content_img: content_img || board.content_img,
-        };
+        const [result] = await pool.promise().query(updateBoardQuery, values);
 
-        await fs.writeFile(
-            boardPath,
-            JSON.stringify(boardData, null, 4),
-            'utf8'
-        );
-
-        return board_id;
+        if (result.affectedRows > 0) return board_id;
     } catch (e) {
-        console.log(`게시글 수정중 에러 발생 => ${e}`);
-        throw new Error('게시글 수정중 문제가 발생했습니다!');
+        throw new Error(`게시글 수정중 에러 발생 => ${e}`);
     }
 };
 
 //NOTE: 게시글 삭제
 exports.delBoard = async (board_id) => {
     try {
-        const boardData = await readBoardData();
-        const boardIndex = boardData.boards.findIndex(
-            (board) => board.board_id == board_id
-        );
-        const board = boardData.boards[boardIndex];
-        if (!board) return 404;
+        const [boardRows] = await pool
+            .promise()
+            .query(getBoardQuery, [board_id]);
+        if (boardRows.length === 0) return 404;
 
-        boardData.boards.splice(boardIndex, 1);
+        const [result] = await pool
+            .promise()
+            .query('DELETE FROM boardInfo WHERE board_id = ?', [board_id]);
 
-        await fs.writeFile(
-            boardPath,
-            JSON.stringify(boardData, null, 4),
-            'utf8'
-        );
+        if (result.affectedRows > 0) {
+            if (boardRows[0].content_img) {
+                const filePath = path.join(
+                    __dirname,
+                    '..',
+                    boardRows[0].content_img
+                );
 
-        if (board.content_img) {
-            const filePath = path.join(__dirname, '..', board.content_img);
+                await fs.unlink(filePath, (e) => {
+                    if (e) throw new Error(`이미지 삭제 실패 => ${e}`);
+                });
+            }
 
-            await fs.unlink(filePath, (e) => {
-                if (e) throw new Error(`이미지 삭제 실패 => ${e}`);
-            });
+            return { board_id: board_id };
         }
 
-        return { board_id: board_id };
+        throw new Error('게시글 삭제중 에러 발생!');
     } catch (e) {
-        console.log(`게시글 삭제중 에러 발생 => ${e}`);
-        throw new Error('게시글 수정중 문제가 발생했습니다!');
+        throw new Error(`게시글 삭제중 에러 발생 => ${e}`);
     }
 };
 
 //NOTE:게시글 목록 조회
 exports.getBoardList = async (page, limit) => {
     try {
-        const boardData = await readBoardData();
-        const userData = await readUserData();
-
         const startIndex = (page - 1) * limit;
-        const lastIndex = page * limit - 1;
 
-        if (!boardData.boards || boardData.boards.length == 0) return 404;
+        const getQuery = `
+            SELECT 
+                b.board_id,
+                b.title,
+                b.board_date,
+                b.update_date,
+                b.like_count,
+                b.view_count,
+                b.comment_count,
+                b.user_id,
+                u.nickname,
+                u.profile_img
+            FROM boardInfo b
+            JOIN user u
+            ON b.user_id = u.user_id
+            ORDER BY b.board_id DESC
+            LIMIT ? OFFSET ?;
+        `;
 
-        const sortBoards = boardData.boards.sort(
-            (a, b) => b.board_id - a.board_id
-        );
+        const [rows] = await pool
+            .promise()
+            .query(getQuery, [Number(limit), startIndex]);
 
-        const result = await sortBoards
-            .splice(startIndex, lastIndex)
-            .map((board) => {
-                const user = userData.users.find(
-                    (user) => user.user_id == board.user_id
-                );
-
-                return {
-                    ...board,
-                    content_img:
-                        board.content_img != null
-                            ? `http://${process.env.BACKEND_URL}:5050${board.content_img}`
-                            : null,
-                    nickname: user.nickname,
-                    profile_img:
-                        user.profile_img != null
-                            ? `http://${process.env.BACKEND_URL}:5050${user.profile_img}`
-                            : null,
-                };
-            });
+        const result = rows.map((row) => {
+            return {
+                ...row,
+                profile_img:
+                    row.profile_img != null
+                        ? `http://${process.env.BACKEND_URL}:5050${row.profile_img}`
+                        : null,
+            };
+        });
 
         return JSON.stringify(result);
     } catch (e) {
-        console.log(`게시글 목록 조회중 에러 발생 => ${e}`);
-        throw new Error('게시글 목록 조회중 문제가 발생했습니다!');
+        throw new Error(`게시글 목록 조회중 에러 발생 => ${e}`);
     }
 };
 
 //NOTE: 좋아요 증가
 exports.increaseLike = async (user_id, board_id) => {
     try {
-        const boardData = await readBoardData();
-        const likeData = await readLikeData();
-        const boardIndex = boardData.boards.findIndex(
-            (board) => board.board_id == board_id
-        );
-        const board = boardData.boards[boardIndex];
+        const [boardRows] = await pool
+            .promise()
+            .query(getBoardQuery, [board_id]);
+        if (boardRows.length === 0) return 404;
 
-        if (!board) return 404;
+        const [likeRows] = await pool
+            .promise()
+            .query(
+                'SELECT * FROM boardLike WHERE board_id = ? && user_id = ?',
+                [board_id, user_id]
+            );
+        if (likeRows.length > 0) return 400;
 
-        const existingLike = likeData.likes.find(
-            (like) => like.board_id == board_id && like.user_id == user_id
-        );
-        if (existingLike) return 400;
-
-        boardData.boards[boardIndex].like_count += 1;
-        likeData.likes.push({ user_id, board_id });
-
-        await fs.writeFile(
-            boardPath,
-            JSON.stringify(boardData, null, 4),
-            'utf8'
-        );
-        await fs.writeFile(likePath, JSON.stringify(likeData, null, 4), 'utf8');
+        await pool
+            .promise()
+            .query(
+                'UPDATE boardInfo SET like_count = like_count + 1 WHERE board_id = ?',
+                [board_id]
+            );
+        await pool
+            .promise()
+            .query('INSERT INTO boardLike(board_id,user_id) VALUES(?,?)', [
+                board_id,
+                user_id,
+            ]);
 
         return { board_id: board_id };
     } catch (e) {
-        console.log(`좋아요 증가중 에러 발생 =>${e}`);
-        throw new Error('좋아요 증가중 문제가 발생했습니다!');
+        throw new Error(`좋아요 증가중 에러 발생 => ${e}`);
     }
 };
 
 //NOTE: 좋아요 감소
 exports.decreaseLike = async (user_id, board_id) => {
     try {
-        const boardData = await readBoardData();
-        const likeData = await readLikeData();
-        const boardIndex = boardData.boards.findIndex(
-            (board) => board.board_id == board_id
-        );
-        const board = boardData.boards[boardIndex];
+        const [boardRows] = await pool
+            .promise()
+            .query(getBoardQuery, [board_id]);
+        if (boardRows.length === 0) return 404;
 
-        if (!board) return 404;
+        const [likeRows] = await pool
+            .promise()
+            .query(
+                'SELECT * FROM boardLike WHERE board_id = ? && user_id = ?',
+                [board_id, user_id]
+            );
+        if (likeRows.length === 0) return 400;
 
-        const likeIndex = likeData.likes.findIndex(
-            (like) => like.board_id == board_id && like.user_id == user_id
-        );
-        if (likeIndex == -1) return 400;
+        await pool
+            .promise()
+            .query(
+                'UPDATE boardInfo SET like_count = like_count -1 WHERE board_id = ?',
+                [board_id]
+            );
 
-        boardData.boards[boardIndex].like_count -= 1;
-        likeData.likes.splice(likeIndex, 1);
-
-        await fs.writeFile(
-            boardPath,
-            JSON.stringify(boardData, null, 4),
-            'utf8'
-        );
-        await fs.writeFile(likePath, JSON.stringify(likeData, null, 4), 'utf8');
+        await pool
+            .promise()
+            .query('DELETE FROM boardLike WHERE board_id = ? && user_id = ?', [
+                board_id,
+                user_id,
+            ]);
 
         return { board_id: board_id };
     } catch (e) {
-        console.log(`좋아요 감소중 에러 발생 =>${e}`);
-        throw new Error('좋아요 감소중 문제가 발생했습니다!');
+        throw new Error(`좋아요 감소중 에러 발생 => ${e}`);
     }
 };
 
 //NOTE: 좋아요 유무
 exports.getLike = async (user_id, board_id) => {
     try {
-        const likeData = await readLikeData();
-        const like = likeData.likes.find((like) => like.user_id == user_id);
-        if (!like) return false;
-
-        if (like.board_id == board_id) {
+        const [rows] = await pool
+            .promise()
+            .query(
+                'SELECT * FROM boardLike WHERE user_id = ? && board_id = ?',
+                [user_id, board_id]
+            );
+        if (rows.length > 0) {
             return true;
         } else {
             return false;
         }
     } catch (e) {
-        console.log(`좋아요 확인중 에러 발생 =>${e}`);
-        throw new Error('좋아요 확인중 문제가 발생했습니다!');
+        throw new Error(`좋아요 확인중 에러 발생 => ${e}`);
     }
 };
