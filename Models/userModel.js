@@ -165,6 +165,26 @@ exports.delUser = async (user_id) => {
             .promise()
             .query('SELECT * FROM user WHERE user_id = ?', [user_id]);
         if (rows.length > 0) {
+            // 연관된 데이터의 user_id를 NULL로 설정
+            await pool
+                .promise()
+                .query(
+                    'UPDATE boardLike SET user_id = NULL WHERE user_id = ?',
+                    [user_id]
+                );
+            await pool
+                .promise()
+                .query(
+                    'UPDATE boardInfo SET user_id = NULL WHERE user_id = ?',
+                    [user_id]
+                );
+            await pool
+                .promise()
+                .query('UPDATE comment SET user_id = NULL WHERE user_id = ?', [
+                    user_id,
+                ]);
+
+            // user 삭제
             const [result] = await pool
                 .promise()
                 .query('DELETE FROM user WHERE user_id = ?', [user_id]);
