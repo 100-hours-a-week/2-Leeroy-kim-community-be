@@ -7,7 +7,8 @@ const pool = require('../config/db');
 const dayjs = require('dayjs');
 
 const getBoardQuery = 'SELECT * FROM boardInfo WHERE board_id = ?';
-const getCommentQuery = 'SELECT * FROM comment WHERE board_id = ?';
+const getCommentsQuery = 'SELECT * FROM comment WHERE board_id = ?';
+const getCommentQuery = 'SELECT * FROM comment WHERE comment_id = ?';
 
 const readCommentData = async () => {
     const data = await fs.readFile(commentPath, 'utf8');
@@ -31,10 +32,6 @@ exports.addComments = async (board_id, user_id, comment) => {
             .promise()
             .query(getBoardQuery, [board_id]);
         if (boardRows.length === 0) return 404;
-
-        const [commentRows] = await pool
-            .promise()
-            .query(getCommentQuery, [board_id]);
 
         const newComment = [
             board_id,
@@ -64,7 +61,7 @@ exports.getComment = async (board_id) => {
     try {
         const [commentRows] = await pool
             .promise()
-            .query(getCommentQuery, [board_id]);
+            .query(getCommentsQuery, [board_id]);
         if (commentRows.length === 0) return 200;
 
         const result = await Promise.all(
@@ -95,70 +92,56 @@ exports.getComment = async (board_id) => {
 //NOTE: 댓글 삭제
 exports.delComment = async (board_id, comment_id) => {
     try {
-        const commentData = await readCommentData();
-        const boardIndex = commentData.boards.findIndex(
-            (board) => board.board_id == board_id
-        );
-        const commentIndex = commentData.boards[
-            boardIndex
-        ].comment_list.findIndex((comment) => comment.comment_id == comment_id);
+        const [boardRows] = await pool
+            .promise()
+            .query(getBoardQuery, [board_id]);
+        if (boardRows.length === 0) return 404;
 
-        commentData.boards[boardIndex].comment_list.splice(commentIndex, 1);
+        const [commentRows] = await pool
+            .promise()
+            .query(getCommentQuery, [comment_id]);
+        if (commentRows.length === 0) return 404;
 
-        const commentCount = commentData.boards[boardIndex].comment_list.length;
-        const boardData = await readBoardData();
-        const updateBoardIndex = boardData.boards.findIndex(
-            (board) => board.board_id == board_id
-        );
-
-        boardData.boards[updateBoardIndex].comment_count = commentCount;
-        //NOTE: 댓글 삭제
-        await fs.writeFile(
-            commentPath,
-            JSON.stringify(commentData, null, 4),
-            'utf8'
-        );
-        //NOTE: 게시판 댓글 갯수 업데이트
-        await fs.writeFile(
-            boardPath,
-            JSON.stringify(boardData, null, 4),
-            'utf8'
-        );
+        //NOTE: 댓글 삭제 & 게시판 댓글 갯수 업데이트
+        await pool
+            .promise()
+            .query('DELETE FROM comment WHERE comment_id = ?', [comment_id]);
+        await pool
+            .promise()
+            .query(
+                'UPDATE boardInfo SET comment_count = comment_count - 1 WHERE board_id = ?',
+                [board_id]
+            );
 
         return { comment_id: comment_id };
     } catch (e) {
-        console.log(`댓글 삭제중 에러 발생 => ${e}`);
-        throw new Error('댓글 생성중 문제가 발생했습니다!');
+        throw new Error(`댓글 삭제중 에러 발생 => ${e}`);
     }
 };
+
 //NOTE: 댓글 수정
 exports.editComment = async (board_id, comment_id, comment) => {
     try {
-        const commentData = await readCommentData();
-        const boardIndex = commentData.boards.findIndex(
-            (board) => board.board_id == board_id
-        );
-        const commentIndex = commentData.boards[
-            boardIndex
-        ].comment_list.findIndex((comment) => comment.comment_id == comment_id);
+        const [commentRows] = await pool
+            .promise()
+            .query(
+                'SELECT * FROM comment WHERE board_id = ? && comment_id = ?',
+                [board_id, comment_id]
+            );
+        if (commentRows.length === 0) return 404;
 
-        const newComment =
-            commentData.boards[boardIndex].comment_list[commentIndex];
-        commentData.boards[boardIndex].comment_list[commentIndex] = {
-            ...newComment,
-            comment,
-            update_date: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-        };
-
-        await fs.writeFile(
-            commentPath,
-            JSON.stringify(commentData, null, 4),
-            'utf8'
-        );
+        const editComment =
+            'UPDATE comment SET comment = ? , update_date = ? WHERE comment_id = ?';
+        await pool
+            .promise()
+            .query(editComment, [
+                comment,
+                dayjs().format('YYYY-MM-DD HH:mm:ss'),
+                comment_id,
+            ]);
 
         return { comment_id: comment_id };
     } catch (e) {
-        console.log(`댓글 수정중 에러 발생 => ${e}`);
-        throw new Error('댓글 수정중 문제가 발생했습니다!');
+        throw new Error(`댓글 수정중 에러 발생 => ${e}`);
     }
 };

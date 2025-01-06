@@ -41,21 +41,20 @@ exports.checkCommentAuth = async (req, res, next) => {
     const board_id = req.params.board_id;
     const comment_id = req.params.comment_id;
 
-    const data = await fs.readFile(commentPath, 'utf8');
-    const commentData = JSON.parse(data);
+    const [[board]] = await pool
+        .promise()
+        .query('SELECT user_id FROM boardInfo WHERE board_id = ?', [board_id]);
 
-    const board = commentData.boards.find(
-        (board) => board.board_id == board_id
-    );
     if (!board)
         return res.status(404).json({
             message: '존재하지 않는 게시물입니다!',
             data: null,
         });
 
-    const comment = board.comment_list.find(
-        (comment) => comment.comment_id == comment_id
-    );
+    const [[comment]] = await pool
+        .promise()
+        .query('SELECT * FROM comment WHERE comment_id = ?', [comment_id]);
+
     if (!comment)
         return res.status(404).json({
             message: '존재하지 않는 댓글입니다!',
