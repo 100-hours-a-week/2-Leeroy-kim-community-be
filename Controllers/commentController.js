@@ -63,13 +63,19 @@ exports.delComment = async (req, res) => {
     try {
         const result = await commentModel.delComment(board_id, comment_id);
 
+        if (result == 404)
+            return res.status(404).json({
+                message: '존재하지 않는 댓글 또는 게시물 입니다.',
+                data: null,
+            });
+
         return res.status(201).json({
             message: '댓글 삭제 완료!',
             data: result,
         });
     } catch (e) {
         console.log(e);
-        return res.statu(500).json({
+        return res.status(500).json({
             message: '서버에서 에러가 발생했습니다!',
             data: null,
         });
@@ -89,7 +95,7 @@ exports.editComment = async (req, res) => {
 
         if (result == 404)
             return res.status(404).json({
-                message: '존재하지 않는 댓글 입니다.',
+                message: '존재하지 않는 댓글 또는 게시글 입니다.',
                 data: null,
             });
 
