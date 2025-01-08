@@ -68,6 +68,17 @@ exports.getBoard = async (board_id) => {
             view_count: boardRows[0].view_count + 1,
             comment_count: boardRows[0].comment_count,
             user_id: boardRows[0].user_id,
+            board_date: boardRows[0].update_date
+                ? dayjs(boardRows[0].update_date).format(
+                      'YYYY년 MM월 DD일 HH:mm:ss'
+                  )
+                : dayjs(boardRows[0].board_date).format(
+                      'YYYY년 MM월 DD일 HH:mm:ss'
+                  ),
+            like_count: boardRows[0].like_count,
+            view_count: boardRows[0].view_count + 1,
+            comment_count: boardRows[0].comment_count,
+            user_id: boardRows[0].user_id,
             nickname: userRows[0].nickname,
             profile_img:
                 userRows[0].profile_img != null
@@ -181,9 +192,18 @@ exports.getBoardList = async (page, limit) => {
             .promise()
             .query(getQuery, [Number(limit), startIndex]);
 
+        const [[totalPage]] = await pool
+            .promise()
+            .query(
+                'SELECT CEIL(COUNT(*) / 5) as page FROM boardInfo WHERE user_id != 0;'
+            );
+
         const result = rows.map((row) => {
             return {
                 ...row,
+                board_date: row.update_date
+                    ? dayjs(row.update_date).format('YYYY년 MM월 DD일 HH:mm:ss')
+                    : dayjs(row.board_date).format('YYYY년 MM월 DD일 HH:mm:ss'),
                 profile_img:
                     row.profile_img != null
                         ? `http://${process.env.BACKEND_URL}:5050${row.profile_img}`
@@ -191,7 +211,12 @@ exports.getBoardList = async (page, limit) => {
             };
         });
 
-        return JSON.stringify(result);
+        const response = {
+            totalPage: totalPage.page,
+            data: result,
+        };
+
+        return JSON.stringify(response);
     } catch (e) {
         throw new Error(`게시글 목록 조회중 에러 발생 => ${e}`);
     }

@@ -1,29 +1,9 @@
-const path = require('path');
-const fs = require('fs').promises;
-const commentPath = path.join(__dirname, '../data/commentInfo.json');
-const userPath = path.join(__dirname, '../data/userInfo.json');
-const boardPath = path.join(__dirname, '../data/boardInfo.json');
 const pool = require('../config/db');
 const dayjs = require('dayjs');
 
 const getBoardQuery = 'SELECT * FROM boardInfo WHERE board_id = ?';
 const getCommentsQuery = 'SELECT * FROM comment WHERE board_id = ?';
 const getCommentQuery = 'SELECT * FROM comment WHERE comment_id = ?';
-
-const readCommentData = async () => {
-    const data = await fs.readFile(commentPath, 'utf8');
-    return JSON.parse(data);
-};
-
-const readUserData = async () => {
-    const data = await fs.readFile(userPath, 'utf8');
-    return JSON.parse(data);
-};
-
-const readBoardData = async () => {
-    const data = await fs.readFile(boardPath, 'utf8');
-    return JSON.parse(data);
-};
 
 //NOTE: 댓글 생성
 exports.addComments = async (board_id, user_id, comment) => {
@@ -74,6 +54,13 @@ exports.getComment = async (board_id) => {
 
                 return {
                     ...comment,
+                    comment_date: comment.update_date
+                        ? dayjs(comment.update_date).format(
+                              'YYYY년 MM월 DD일 HH:mm:ss'
+                          )
+                        : dayjs(comment.board_date).format(
+                              'YYYY년 MM월 DD일 HH:mm:ss'
+                          ),
                     nickname: userRows.nickname,
                     profile_img:
                         userRows.profile_img != null
