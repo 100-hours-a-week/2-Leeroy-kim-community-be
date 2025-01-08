@@ -140,9 +140,12 @@ exports.getBoardList = async (req, res) => {
                 dat: null,
             });
 
+        const { totalPage, data } = JSON.parse(result);
+
         return res.status(200).json({
             message: '게시글 목록 조회 완료!',
-            data: JSON.parse(result),
+            totalPage,
+            data,
         });
     } catch (e) {
         console.log(e);

@@ -181,6 +181,12 @@ exports.getBoardList = async (page, limit) => {
             .promise()
             .query(getQuery, [Number(limit), startIndex]);
 
+        const [[totalPage]] = await pool
+            .promise()
+            .query(
+                'SELECT CEIL(COUNT(*) / 5) as page FROM boardInfo WHERE user_id != 0;'
+            );
+
         const result = rows.map((row) => {
             return {
                 ...row,
@@ -191,7 +197,12 @@ exports.getBoardList = async (page, limit) => {
             };
         });
 
-        return JSON.stringify(result);
+        const response = {
+            totalPage: totalPage.page,
+            data: result,
+        };
+
+        return JSON.stringify(response);
     } catch (e) {
         throw new Error(`게시글 목록 조회중 에러 발생 => ${e}`);
     }

@@ -104,7 +104,11 @@ exports.editUser = async (nickname, profile_img, user_id) => {
                 return 400;
 
             if (profile_img) {
-                const filePath = path.join(__dirname, '..', user.profile_img);
+                const filePath = path.join(
+                    __dirname,
+                    '..',
+                    rows[0].profile_img
+                );
 
                 await fs.unlink(filePath, (e) => {
                     if (e) throw new Error(`이미지 삭제 실패 => ${e}`);
