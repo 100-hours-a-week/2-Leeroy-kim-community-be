@@ -1,16 +1,18 @@
 const commentModel = require('../Models/commentModel');
+const sanitizeHtml = require('sanitize-html');
 
 //NOTE: 댓글 생성
 exports.addComment = async (req, res) => {
     const board_id = req.params.board_id;
     const user_id = req.user.user_id;
     const { comment } = req.body;
+    let cleanComment = sanitizeHtml(comment);
 
     try {
         const result = await commentModel.addComments(
             board_id,
             user_id,
-            comment
+            cleanComment
         );
 
         if (result == 404)
@@ -85,12 +87,13 @@ exports.delComment = async (req, res) => {
 exports.editComment = async (req, res) => {
     const { board_id, comment_id } = req.info;
     const { comment } = req.body;
+    let cleanComment = sanitizeHtml(comment);
 
     try {
         const result = await commentModel.editComment(
             board_id,
             comment_id,
-            comment
+            cleanComment
         );
 
         if (result == 404)

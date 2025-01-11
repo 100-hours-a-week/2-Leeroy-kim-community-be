@@ -1,4 +1,5 @@
 const userModel = require('../Models/userModel');
+const sanitizeHtml = require('sanitize-html');
 
 //NOTE: 로그인
 exports.login = async (req, res) => {
@@ -77,7 +78,9 @@ exports.signup = async (req, res) => {
         ? `/resource/profileImg/${req.file.filename}`
         : null;
 
-    if (!email && !password && !nickname)
+    let cleanNickname = sanitizeHtml(nickname);
+
+    if (!email && !password && !cleanNickname)
         return res
             .status(400)
             .json({ message: '입력한 값이 비어있습니다.', data: null });
@@ -86,7 +89,7 @@ exports.signup = async (req, res) => {
         const result = await userModel.addUser(
             email,
             password,
-            nickname,
+            cleanNickname,
             profile_img
         );
 
@@ -147,14 +150,20 @@ exports.editUser = async (req, res) => {
     const profile_img = req.file && `/resource/profileImg/${req.file.filename}`;
     const user_id = req.user.user_id;
 
-    if (!nickname && !profile_img)
+    let cleanNickname = sanitizeHtml(nickname);
+
+    if (!cleanNickname && !profile_img)
         return res.status(400).json({
             message: '입력한 값이 비었습니다.',
             data: null,
         });
 
     try {
-        const result = await userModel.editUser(nickname, profile_img, user_id);
+        const result = await userModel.editUser(
+            cleanNickname,
+            profile_img,
+            user_id
+        );
 
         if (result == 400)
             return res.status(400).json({
