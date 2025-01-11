@@ -138,6 +138,10 @@ exports.delBoard = async (board_id) => {
             .query(getBoardQuery, [board_id]);
         if (boardRows.length === 0) return 404;
 
+        await pool
+            .promise()
+            .query('DELETE FROM comment WHERE board_id = ?', [board_id]);
+
         const [result] = await pool
             .promise()
             .query('DELETE FROM boardInfo WHERE board_id = ?', [board_id]);
