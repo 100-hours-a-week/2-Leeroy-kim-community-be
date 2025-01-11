@@ -6,7 +6,7 @@
             "password": "eef8f5f137473e2aa6cab7d0ed05fbe7b74c2b79202e4a3a71da0b584d30e079",
             "nickname": "테스트",
             "salt": "3r3135",
-            "profile_img": null
+            "profile_img": "/null"
         },
         {
             "user_id": 1,
@@ -15,6 +15,14 @@
             "salt": "O1ybH5ZWqp+G1Nn9T16cXhxlGnnKp/USK2bGhDVCKA7/b8DyARuPdh2fPXoN7OBuGJIrl02wZhYsWbeqffiSzo1hs3IegiqJ6UJheZdg2eNTeTKsROsr1ZMrYZagaZOzg1VSBsaUMLeBJ13IobK9+lkushOgjMhINQjEv6DjNfI=",
             "nickname": "닉네임1",
             "profile_img": "/resource/profileImg/1732379144075-0.697130792787513.jpeg"
+        },
+        {
+            "user_id": 2,
+            "email": "test3@naver.com",
+            "password": "c12f339de7d357599a5275bb616d09ec82112f1f5c7ad5c7f5688a85d59a74ef",
+            "salt": "Oa3Sz5gD9Nezq1KOolMXtmg+LwJawRUP1qLSVh440l6oqiEpm25kkLTxq1N+Flz8Q4CnzWVjR/beItlDGyGxdUf/FTQ8Dicb11ocTANyV5RPvSddiKDjSB0NOUqjfogY32Cb9d4Ky8fXVv/DbVWKx5r8BT/zERInpOwOszUVpwg=",
+            "nickname": "스파이더맨",
+            "profile_img": "/resource/profileImg/1733383461912-0.12622719264196203.jpeg"
         }
     ]
 }

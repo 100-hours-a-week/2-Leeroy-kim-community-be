@@ -1,4 +1,5 @@
 const userModel = require('../Models/userModel');
+const sanitizeHtml = require('sanitize-html');
 
 //NOTE: 로그인
 exports.login = async (req, res) => {
@@ -26,7 +27,9 @@ exports.login = async (req, res) => {
             });
 
         res.cookie('user_id', result.user_id, {
-            httpOnly: true,
+            signed: true, //서명하여 무결성 검증
+            sameSite: 'Strict', //동일 사이트에서만 전송되게 함
+            httpOnly: true, //js로 쿠키를 읽거나 조작을 못하게 함
             maxAge: 60 * 60 * 1000,
         });
 
@@ -50,7 +53,9 @@ exports.login = async (req, res) => {
 exports.logout = async (req, res) => {
     try {
         res.clearCookie('user_id', {
+            signed: true,
             httpOnly: true,
+            sameSite: 'Strict',
         });
 
         return res.status(200).json({
@@ -73,7 +78,9 @@ exports.signup = async (req, res) => {
         ? `/resource/profileImg/${req.file.filename}`
         : null;
 
-    if (!email && !password && !nickname)
+    let cleanNickname = sanitizeHtml(nickname);
+
+    if (!email && !password && !cleanNickname)
         return res
             .status(400)
             .json({ message: '입력한 값이 비어있습니다.', data: null });
@@ -82,7 +89,7 @@ exports.signup = async (req, res) => {
         const result = await userModel.addUser(
             email,
             password,
-            nickname,
+            cleanNickname,
             profile_img
         );
 
@@ -114,10 +121,9 @@ exports.signup = async (req, res) => {
 
 //NOTE: 회원정보 조회
 exports.getUser = async (req, res) => {
-    const params_id = await req.params.id;
-
+    const user_id = req.user.user_id;
     try {
-        const result = await userModel.getUser(params_id);
+        const result = await userModel.getUser(user_id);
 
         if (result == 404)
             return res.status(404).json({
@@ -142,9 +148,11 @@ exports.getUser = async (req, res) => {
 exports.editUser = async (req, res) => {
     const { nickname } = req.body;
     const profile_img = req.file && `/resource/profileImg/${req.file.filename}`;
-    const params_id = req.user.user_id;
+    const user_id = req.user.user_id;
 
-    if (!nickname && !profile_img)
+    let cleanNickname = sanitizeHtml(nickname);
+
+    if (!cleanNickname && !profile_img)
         return res.status(400).json({
             message: '입력한 값이 비었습니다.',
             data: null,
@@ -152,10 +160,16 @@ exports.editUser = async (req, res) => {
 
     try {
         const result = await userModel.editUser(
-            nickname,
+            cleanNickname,
             profile_img,
-            params_id
+            user_id
         );
+
+        if (result == 400)
+            return res.status(400).json({
+                message: '중복된 닉네임 입니다.',
+                data: null,
+            });
 
         if (result == 404)
             return res.status(404).json({

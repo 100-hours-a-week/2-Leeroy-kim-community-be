@@ -1,4 +1,5 @@
 const boardModel = require('../Models/boardModel');
+const sanitizeHtml = require('sanitize-html');
 
 //NOTE: 게시글 작성
 exports.addBoard = async (req, res) => {
@@ -8,7 +9,10 @@ exports.addBoard = async (req, res) => {
         ? `/resource/boardImg/${req.file.filename}`
         : null;
 
-    if (!title && !content)
+    let cleanTitle = sanitizeHtml(title);
+    let cleanContent = sanitizeHtml(content);
+
+    if (!cleanTitle && !cleanContent)
         return res
             .status(400)
             .json({ message: '입력한 값이 비어있습니다.', data: null });
@@ -16,8 +20,8 @@ exports.addBoard = async (req, res) => {
     try {
         const result = await boardModel.addBoard(
             user_id,
-            title,
-            content,
+            cleanTitle,
+            cleanContent,
             content_img
         );
 
@@ -74,11 +78,14 @@ exports.editBoard = async (req, res) => {
         : null;
     const board_id = req.params.board_id;
 
+    let cleanTitle = sanitizeHtml(title);
+    let cleanContent = sanitizeHtml(content);
+
     try {
         const result = await boardModel.editBoard(
             board_id,
-            title,
-            content,
+            cleanTitle,
+            cleanContent,
             content_img
         );
 
@@ -140,9 +147,12 @@ exports.getBoardList = async (req, res) => {
                 dat: null,
             });
 
+        const { totalPage, data } = JSON.parse(result);
+
         return res.status(200).json({
             message: '게시글 목록 조회 완료!',
-            data: JSON.parse(result),
+            totalPage,
+            data,
         });
     } catch (e) {
         console.log(e);
@@ -208,6 +218,27 @@ exports.decreaseLike = async (req, res) => {
         return res.status(201).json({
             message: '좋아요 감소 완료',
             data: null,
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            message: '서버에서 에러가 발생했습니다!',
+            data: null,
+        });
+    }
+};
+
+//NOTE: 좋아요 유무
+exports.getLike = async (req, res) => {
+    const board_id = req.params.board_id;
+    const user_id = req.user.user_id;
+
+    try {
+        const result = await boardModel.getLike(user_id, board_id);
+
+        return res.status(200).json({
+            message: '좋아요 유무 응답 완료',
+            data: result,
         });
     } catch (e) {
         console.log(e);

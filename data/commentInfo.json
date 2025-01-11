@@ -28,6 +28,25 @@
                     "comment_date": "2024-11-27 01:53:39",
                     "update_date": null,
                     "user_id": "1"
+                },
+                {
+                    "comment_id": 2,
+                    "comment": "댓글 3",
+                    "comment_date": "2024-12-05 03:26:05",
+                    "update_date": null,
+                    "user_id": "2"
+                }
+            ]
+        },
+        {
+            "board_id": "4",
+            "comment_list": [
+                {
+                    "comment_id": 0,
+                    "comment": "이미지 예쁘네요!!",
+                    "comment_date": "2024-12-05 13:42:30",
+                    "update_date": "2024-12-05 17:39:38",
+                    "user_id": "2"
                 }
             ]
         }
