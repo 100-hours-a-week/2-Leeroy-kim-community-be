@@ -140,6 +140,10 @@ exports.delBoard = async (board_id) => {
 
         await pool
             .promise()
+            .query('DELETE FROM boardLike WHERE board_id = ?', [board_id]);
+
+        await pool
+            .promise()
             .query('DELETE FROM comment WHERE board_id = ?', [board_id]);
 
         const [result] = await pool
