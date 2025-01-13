@@ -182,6 +182,21 @@ exports.delUser = async (user_id) => {
                     'UPDATE boardInfo SET user_id = NULL WHERE user_id = ?',
                     [user_id]
                 );
+            //NOTE:게시물 댓글 갯수 업데이트 및 댓글 NULL로 설정
+            const [comments] = await pool
+                .promise()
+                .query(
+                    'SELECT board_id, COUNT(*) as comment_count FROM comment WHERE user_id = ? GROUP BY board_id;',
+                    [user_id]
+                );
+            for (const comment of comments) {
+                await pool
+                    .promise()
+                    .query(
+                        'UPDATE boardInfo SET comment_count = comment_count - ? WHERE board_id = ?',
+                        [comment.comment_count, comment.board_id]
+                    );
+            }
             await pool
                 .promise()
                 .query('UPDATE comment SET user_id = NULL WHERE user_id = ?', [

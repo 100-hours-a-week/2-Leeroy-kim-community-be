@@ -52,6 +52,8 @@ exports.getComment = async (board_id) => {
                         comment.user_id,
                     ]);
 
+                if (!userRows) return null;
+
                 return {
                     ...comment,
                     comment_date: comment.update_date
