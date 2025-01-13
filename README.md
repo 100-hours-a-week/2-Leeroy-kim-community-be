@@ -28,7 +28,7 @@
 ### 📁 프로젝트 구조
 ```shell
 .
-├── Controllers #
+├── Controllers #요청한 작업을 처리하고 결과를 반환하는 코드
 ├── Models #DB와 상호작용하는 코드  
 ├── middlewares #미들웨어로 자주 사용되는 코드(인증/인가)
 ├── Routes #URL 요청 처리 관련 코드
