@@ -169,20 +169,31 @@ exports.delUser = async (user_id) => {
             .promise()
             .query('SELECT * FROM user WHERE user_id = ?', [user_id]);
         if (rows.length > 0) {
-            // 연관된 데이터의 user_id를 NULL로 설정
+            // 연관된 데이터 삭제
             await pool
                 .promise()
-                .query(
-                    'UPDATE boardLike SET user_id = NULL WHERE user_id = ?',
-                    [user_id]
-                );
-            await pool
+                .query('DELETE FROM boardInfo WHERE user_id = ?', [user_id]);
+            //NOTE:게시물 좋아요 갯수 업데이트 및 좋아요 테이블 데이터 삭제
+            const [boardLikes] = await pool
                 .promise()
                 .query(
-                    'UPDATE boardInfo SET user_id = NULL WHERE user_id = ?',
+                    'SELECT board_id FROM boardLike WHERE user_id = ? ORDER BY board_id;',
                     [user_id]
                 );
-            //NOTE:게시물 댓글 갯수 업데이트 및 댓글 NULL로 설정
+            for (const like of boardLikes) {
+                await pool
+                    .promise()
+                    .query(
+                        'UPDATE boardInfo SET like_count = like_count -1 WHERE board_id = ?',
+                        [like.board_id]
+                    );
+            }
+
+            await pool
+                .promise()
+                .query('DELETE FROM boardLike WHERE user_id = ?', [user_id]);
+
+            //NOTE:게시물 댓글 갯수 업데이트 및 댓글 삭제
             const [comments] = await pool
                 .promise()
                 .query(
@@ -199,9 +210,7 @@ exports.delUser = async (user_id) => {
             }
             await pool
                 .promise()
-                .query('UPDATE comment SET user_id = NULL WHERE user_id = ?', [
-                    user_id,
-                ]);
+                .query('DELETE FROM comment WHERE user_id = ?', [user_id]);
 
             // user 삭제
             const [result] = await pool
