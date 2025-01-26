@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs').promises;
-const dayjs = require('dayjs');
+const dayjs = require('../config/day');
 const pool = require('../config/db');
 require('dotenv').config();
 
@@ -16,7 +16,7 @@ exports.addBoard = async (user_id, title, content, content_img) => {
             title,
             content,
             content_img || null,
-            dayjs().format('YYYY-MM-DD HH:mm:ss'),
+            dayjs().tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
             user_id,
         ];
         const [result] = await pool.promise().query(addboardQueyr, [values]);
@@ -118,7 +118,7 @@ exports.editBoard = async (board_id, title, content, content_img) => {
             title,
             content,
             content_img,
-            dayjs().format('YYYY-MM-DD HH:mm:ss'),
+            dayjs().tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
             board_id,
         ];
 
