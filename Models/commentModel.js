@@ -13,6 +13,8 @@ exports.addComments = async (board_id, user_id, comment) => {
             .query(getBoardQuery, [board_id]);
         if (boardRows.length === 0) return 404;
 
+        if (comment.length > 500) return 400;
+
         const newComment = [
             board_id,
             user_id,
