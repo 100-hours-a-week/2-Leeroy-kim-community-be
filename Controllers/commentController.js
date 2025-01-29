@@ -20,12 +20,18 @@ exports.addComment = async (req, res) => {
                 message: '존재하지 않는 게시글 입니다.',
                 data: null,
             });
+        if (result == 400)
+            return res.status(400).json({
+                message: '최대 500글자 입니다.',
+                data: null,
+            });
 
         return res.status(201).json({
             message: '댓글 작성 완료!',
             data: result,
         });
     } catch (e) {
+        console.log(e);
         return res.status(500).json({
             message: '서버에서 에러가 발생했습니다!',
             data: null,
