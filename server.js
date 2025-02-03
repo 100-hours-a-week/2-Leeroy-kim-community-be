@@ -51,16 +51,11 @@ app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
 
 app.use('/api', this.apiLimiter, router);
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-});
-
 app.use('/resource', express.static(path.join(__dirname, 'resource')));
 
 pool.connect((e) => {
     if (e) {
         console.error('❌ Database connection failed:', e.message);
-        process.exit(1);
     } else {
         console.log('✅ Connected to the MySQL database!');
     }
