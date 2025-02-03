@@ -24,6 +24,7 @@ app.use(
 
 app.use(timeout('5s'));
 //api 요청 제한 미들웨어
+app.set('trust proxy', 1);
 exports.apiLimiter = RateLimit({
     windowMs: 60 * 1000, //1분
     max: 80,
@@ -32,6 +33,9 @@ exports.apiLimiter = RateLimit({
             code: this.statusCode, //RateLimit의 반환객체는 429code를 default로 반환하게 되어있음
             message: '1분에 80번만 요청 할 수 있습니다.',
         });
+    },
+    keyGenerator: (req) => {
+        return req.ip;
     },
 });
 
