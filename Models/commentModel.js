@@ -1,5 +1,5 @@
 const pool = require('../config/db');
-const dayjs = require('dayjs');
+const dayjs = require('../config/day');
 
 const getBoardQuery = 'SELECT * FROM boardInfo WHERE board_id = ?';
 const getCommentsQuery = 'SELECT * FROM comment WHERE board_id = ?';
@@ -13,11 +13,13 @@ exports.addComments = async (board_id, user_id, comment) => {
             .query(getBoardQuery, [board_id]);
         if (boardRows.length === 0) return 404;
 
+        if (comment.length > 500) return 400;
+
         const newComment = [
             board_id,
             user_id,
             comment,
-            dayjs().format('YYYY-MM-DD HH:mm:ss'),
+            dayjs().tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
         ];
 
         const addCommentQuery =
@@ -125,7 +127,7 @@ exports.editComment = async (board_id, comment_id, comment) => {
             .promise()
             .query(editComment, [
                 comment,
-                dayjs().format('YYYY-MM-DD HH:mm:ss'),
+                dayjs().tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
                 comment_id,
             ]);
 
