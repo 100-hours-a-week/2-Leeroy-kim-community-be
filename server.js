@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const router = require('./Routes/router');
 const path = require('path');
@@ -7,7 +8,6 @@ const timeout = require('connect-timeout');
 const RateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const pool = require('./config/db');
-require('dotenv').config();
 
 const app = express();
 const port = 5050;
@@ -24,6 +24,7 @@ app.use(
 
 app.use(timeout('5s'));
 //api 요청 제한 미들웨어
+app.set('trust proxy', 1);
 exports.apiLimiter = RateLimit({
     windowMs: 60 * 1000, //1분
     max: 80,
@@ -32,6 +33,9 @@ exports.apiLimiter = RateLimit({
             code: this.statusCode, //RateLimit의 반환객체는 429code를 default로 반환하게 되어있음
             message: '1분에 80번만 요청 할 수 있습니다.',
         });
+    },
+    keyGenerator: (req) => {
+        return req.ip;
     },
 });
 
@@ -51,16 +55,11 @@ app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
 
 app.use('/api', this.apiLimiter, router);
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-});
-
 app.use('/resource', express.static(path.join(__dirname, 'resource')));
 
 pool.connect((e) => {
     if (e) {
         console.error('❌ Database connection failed:', e.message);
-        process.exit(1);
     } else {
         console.log('✅ Connected to the MySQL database!');
     }
