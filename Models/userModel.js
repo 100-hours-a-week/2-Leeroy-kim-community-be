@@ -1,7 +1,10 @@
 const crypto = require('crypto');
-const path = require('path');
-const fs = require('fs').promises;
 const pool = require('../config/db');
+const s3 = require('../config/s3client');
+const {
+    DeleteObjectCommand,
+    DeleteObjectsCommand,
+} = require('@aws-sdk/client-s3');
 
 //NOTE: 로그인 로직
 exports.loginUser = async (email, password) => {
@@ -73,10 +76,7 @@ exports.getUser = async (user_id) => {
                 user_id: rows[0].user_id,
                 email: rows[0].email,
                 nickname: rows[0].nickname,
-                profile_img:
-                    rows[0].profile_img != null
-                        ? `http://${process.env.BACKEND_URL}:5050${rows[0].profile_img}`
-                        : null,
+                profile_img: rows[0].profile_img && rows[0].profile_img,
             };
 
             return JSON.stringify(userInfo);
@@ -104,15 +104,15 @@ exports.editUser = async (nickname, profile_img, user_id) => {
                 return 400;
 
             if (profile_img) {
-                const filePath = path.join(
-                    __dirname,
-                    '..',
-                    rows[0].profile_img
-                );
+                const removeImg = rows[0].profile_img.split('/profiles/')[1];
 
-                await fs.unlink(filePath, (e) => {
-                    if (e) throw new Error(`이미지 삭제 실패 => ${e}`);
-                });
+                const params = {
+                    Bucket: process.env.S3_BUCKET_NAME,
+                    Key: `profiles/${removeImg}`,
+                };
+
+                const command = new DeleteObjectCommand(params);
+                await s3.send(command);
             }
 
             const updateQuery = `
@@ -169,7 +169,30 @@ exports.delUser = async (user_id) => {
             .promise()
             .query('SELECT * FROM user WHERE user_id = ?', [user_id]);
         if (rows.length > 0) {
-            // 연관된 데이터 삭제
+            //NOTE: 게시글 이미지 및 DB 회원이 작성한 게시글 삭제
+            const [boardImages] = await pool
+                .promise()
+                .query('SELECT content_img FROM boardInfo WHERE user_id = ?', [
+                    user_id,
+                ]);
+            const key = boardImages
+                .filter((img) => img.content_img)
+                .map((img) => {
+                    const removeImg = img.content_img.split('/boardImg/')[1];
+                    return `boardImg/${removeImg}`;
+                });
+            if (key.length > 0) {
+                const boardParams = {
+                    Bucket: process.env.S3_BUCKET_NAME,
+                    Delete: {
+                        Objects: key.map((key) => ({ Key: key })),
+                    },
+                };
+
+                const boardCommand = new DeleteObjectsCommand(boardParams);
+                await s3.send(boardCommand);
+            }
+
             await pool
                 .promise()
                 .query('DELETE FROM boardInfo WHERE user_id = ?', [user_id]);
@@ -212,23 +235,21 @@ exports.delUser = async (user_id) => {
                 .promise()
                 .query('DELETE FROM comment WHERE user_id = ?', [user_id]);
 
-            // user 삭제
+            // user 삭제(+이미지)
             const [result] = await pool
                 .promise()
                 .query('DELETE FROM user WHERE user_id = ?', [user_id]);
 
             if (result.affectedRows > 0) {
-                if (rows[0].profile_img) {
-                    const filePath = path.join(
-                        __dirname,
-                        '..',
-                        rows[0].profile_img
-                    );
+                const removeImg = rows[0].profile_img.split('/profiles/')[1];
 
-                    await fs.unlink(filePath, (e) => {
-                        if (e) throw new Error(`이미지 삭제 실패 => ${e}`);
-                    });
-                }
+                const params = {
+                    Bucket: process.env.S3_BUCKET_NAME,
+                    Key: `profiles/${removeImg}`,
+                };
+
+                const command = new DeleteObjectCommand(params);
+                await s3.send(command);
 
                 return { user_id: user_id };
             }

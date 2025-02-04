@@ -74,9 +74,12 @@ exports.logout = async (req, res) => {
 //NOTE: 회원가입
 exports.signup = async (req, res) => {
     const { email, password, nickname } = req.body;
-    const profile_img = req.file
-        ? `/resource/profileImg/${req.file.filename}`
-        : null;
+    const profile_img =
+        req.file &&
+        req.file.location.replace(
+            process.env.S3_BUCKET_URL,
+            process.env.CLOUDFRONT_URL
+        );
 
     let cleanNickname = sanitizeHtml(nickname);
 
@@ -147,7 +150,12 @@ exports.getUser = async (req, res) => {
 //NOTE: 회원정보 수정
 exports.editUser = async (req, res) => {
     const { nickname } = req.body;
-    const profile_img = req.file && `/resource/profileImg/${req.file.filename}`;
+    const profile_img =
+        req.file &&
+        req.file.location.replace(
+            process.env.S3_BUCKET_URL,
+            process.env.CLOUDFRONT_URL
+        );
     const user_id = req.user.user_id;
 
     let cleanNickname = sanitizeHtml(nickname);

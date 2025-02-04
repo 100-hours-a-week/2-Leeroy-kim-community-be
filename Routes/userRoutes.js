@@ -1,25 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const multerS3 = require('multer-s3');
+const s3 = require('../config/s3client');
 const path = require('path');
 const userController = require('../Controllers/userController');
 const cookie = require('../middlewares/checkCookie');
 
 //NOTE: 이미지 저장소 설정
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '../resource/profileImg'));
-    },
-    filename: (req, file, cb) => {
-        cb(
-            null,
-            Date.now() + '-' + Math.random() + path.extname(file.originalname)
-        );
+const storage = multerS3({
+    s3: s3,
+    bucket: process.env.S3_BUCKET_NAME,
+    key: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+
+        cb(null, `profiles/${uniqueSuffix}${path.extname(file.originalname)}`);
     },
 });
 
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif/;
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extName = allowedTypes.test(
         path.extname(file.originalname).toLowerCase()
     );
