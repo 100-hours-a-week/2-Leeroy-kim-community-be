@@ -5,7 +5,12 @@ const sanitizeHtml = require('sanitize-html');
 exports.addBoard = async (req, res) => {
     const user_id = req.user.user_id;
     const { title, content } = req.body;
-    const content_img = req.file && req.file.location;
+    const content_img =
+        req.file &&
+        req.file.location.replace(
+            process.env.S3_BUCKET_URL,
+            process.env.CLOUDFRONT_URL
+        );
 
     let cleanTitle = sanitizeHtml(title);
     let cleanContent = sanitizeHtml(content);
@@ -71,7 +76,12 @@ exports.getBoard = async (req, res) => {
 //NOTE: 게시글 수정
 exports.editBoard = async (req, res) => {
     const { title, content } = req.body;
-    const content_img = req.file && req.file.location;
+    const content_img =
+        req.file &&
+        req.file.location.replace(
+            process.env.S3_BUCKET_URL,
+            process.env.CLOUDFRONT_URL
+        );
     const board_id = req.params.board_id;
 
     let cleanTitle = sanitizeHtml(title);

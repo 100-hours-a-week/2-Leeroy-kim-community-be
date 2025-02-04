@@ -1,5 +1,3 @@
-const path = require('path');
-const fs = require('fs').promises;
 const s3 = require('../config/s3client');
 const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const dayjs = require('../config/day');
