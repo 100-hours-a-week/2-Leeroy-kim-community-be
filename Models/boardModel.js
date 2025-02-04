@@ -1,5 +1,7 @@
 const path = require('path');
 const fs = require('fs').promises;
+const s3 = require('../config/s3client');
+const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const dayjs = require('../config/day');
 const pool = require('../config/db');
 require('dotenv').config();
@@ -56,18 +58,13 @@ exports.getBoard = async (board_id) => {
 
         const boardInfo = {
             board_id: boardRows[0].board_id,
+            user_id: boardRows[0].user_id,
             title: boardRows[0].title,
             content: boardRows[0].content,
-            content_img:
-                boardRows[0].content_img != null
-                    ? `http://${process.env.BACKEND_URL}:5050${boardRows[0].content_img}`
-                    : null,
-            board_date: boardRows[0].board_date,
-            update_date: boardRows[0].update_date,
+            content_img: boardRows[0].content_img && boardRows[0].content_img,
             like_count: boardRows[0].like_count,
             view_count: boardRows[0].view_count + 1,
             comment_count: boardRows[0].comment_count,
-            user_id: boardRows[0].user_id,
             board_date: boardRows[0].update_date
                 ? dayjs(boardRows[0].update_date).format(
                       'YYYY년 MM월 DD일 HH:mm:ss'
@@ -75,15 +72,8 @@ exports.getBoard = async (board_id) => {
                 : dayjs(boardRows[0].board_date).format(
                       'YYYY년 MM월 DD일 HH:mm:ss'
                   ),
-            like_count: boardRows[0].like_count,
-            view_count: boardRows[0].view_count + 1,
-            comment_count: boardRows[0].comment_count,
-            user_id: boardRows[0].user_id,
             nickname: userRows[0].nickname,
-            profile_img:
-                userRows[0].profile_img != null
-                    ? `http://${process.env.BACKEND_URL}:5050${userRows[0].profile_img}`
-                    : null,
+            profile_img: userRows[0].profile_img && userRows[0].profile_img,
         };
 
         return JSON.stringify(boardInfo);
@@ -98,13 +88,19 @@ exports.editBoard = async (board_id, title, content, content_img) => {
         const [rows] = await pool.promise().query(getBoardQuery, [board_id]);
         if (rows.length === 0) return 404;
 
+        //NOTE: S3에 있는 기존 이미지 삭제
         if (rows[0].content_img && content_img) {
-            const filePath = path.join(__dirname, '..', rows[0].content_img);
+            const removeImg = rows[0].content_img.split('/boardImg/')[1];
 
-            await fs.unlink(filePath, (e) => {
-                if (e) throw new Error(`게시글 이미지 삭제 실패 =>${e}`);
-            });
+            const params = {
+                Bucket: process.env.S3_BUCKET_NAME,
+                Key: `boardImg/${removeImg}`,
+            };
+
+            const command = new DeleteObjectCommand(params);
+            await s3.send(command);
         }
+
         const updateBoardQuery = `
             UPDATE boardInfo 
             SET 
@@ -151,17 +147,15 @@ exports.delBoard = async (board_id) => {
             .query('DELETE FROM boardInfo WHERE board_id = ?', [board_id]);
 
         if (result.affectedRows > 0) {
-            if (boardRows[0].content_img) {
-                const filePath = path.join(
-                    __dirname,
-                    '..',
-                    boardRows[0].content_img
-                );
+            const removeImg = boardRows[0].content_img.split('/boardImg/')[1];
 
-                await fs.unlink(filePath, (e) => {
-                    if (e) throw new Error(`이미지 삭제 실패 => ${e}`);
-                });
-            }
+            const params = {
+                Bucket: process.env.S3_BUCKET_NAME,
+                Key: `boardImg/${removeImg}`,
+            };
+
+            const command = new DeleteObjectCommand(params);
+            await s3.send(command);
 
             return { board_id: board_id };
         }
@@ -212,10 +206,7 @@ exports.getBoardList = async (page, limit) => {
                 board_date: row.update_date
                     ? dayjs(row.update_date).format('YYYY년 MM월 DD일 HH:mm:ss')
                     : dayjs(row.board_date).format('YYYY년 MM월 DD일 HH:mm:ss'),
-                profile_img:
-                    row.profile_img != null
-                        ? `http://${process.env.BACKEND_URL}:5050${row.profile_img}`
-                        : null,
+                profile_img: row.profile_img && row.profile_img,
             };
         });
 

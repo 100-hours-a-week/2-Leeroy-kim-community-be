@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const router = require('./Routes/router');
 const path = require('path');
@@ -7,7 +8,6 @@ const timeout = require('connect-timeout');
 const RateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const pool = require('./config/db');
-require('dotenv').config();
 
 const app = express();
 const port = 5050;
