@@ -66,10 +66,7 @@ exports.getComment = async (board_id) => {
                               'YYYY년 MM월 DD일 HH:mm:ss'
                           ),
                     nickname: userRows.nickname,
-                    profile_img:
-                        userRows.profile_img != null
-                            ? `http://${process.env.BACKEND_URL}:5050${userRows.profile_img}`
-                            : null,
+                    profile_img: userRows.profile_img && userRows.profile_img,
                 };
             })
         );
