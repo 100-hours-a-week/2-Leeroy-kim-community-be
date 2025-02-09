@@ -169,33 +169,6 @@ exports.delUser = async (user_id) => {
             .promise()
             .query('SELECT * FROM user WHERE user_id = ?', [user_id]);
         if (rows.length > 0) {
-            //NOTE: 게시글 이미지 및 DB 회원이 작성한 게시글 삭제
-            const [boardImages] = await pool
-                .promise()
-                .query('SELECT content_img FROM boardInfo WHERE user_id = ?', [
-                    user_id,
-                ]);
-            const key = boardImages
-                .filter((img) => img.content_img)
-                .map((img) => {
-                    const removeImg = img.content_img.split('/boardImg/')[1];
-                    return `boardImg/${removeImg}`;
-                });
-            if (key.length > 0) {
-                const boardParams = {
-                    Bucket: process.env.S3_BUCKET_NAME,
-                    Delete: {
-                        Objects: key.map((key) => ({ Key: key })),
-                    },
-                };
-
-                const boardCommand = new DeleteObjectsCommand(boardParams);
-                await s3.send(boardCommand);
-            }
-
-            await pool
-                .promise()
-                .query('DELETE FROM boardInfo WHERE user_id = ?', [user_id]);
             //NOTE:게시물 좋아요 갯수 업데이트 및 좋아요 테이블 데이터 삭제
             const [boardLikes] = await pool
                 .promise()
@@ -234,6 +207,34 @@ exports.delUser = async (user_id) => {
             await pool
                 .promise()
                 .query('DELETE FROM comment WHERE user_id = ?', [user_id]);
+
+            //NOTE: 게시글 이미지 및 DB 회원이 작성한 게시글 삭제
+            const [boardImages] = await pool
+                .promise()
+                .query('SELECT content_img FROM boardInfo WHERE user_id = ?', [
+                    user_id,
+                ]);
+            const key = boardImages
+                .filter((img) => img.content_img)
+                .map((img) => {
+                    const removeImg = img.content_img.split('/boardImg/')[1];
+                    return `boardImg/${removeImg}`;
+                });
+            if (key.length > 0) {
+                const boardParams = {
+                    Bucket: process.env.S3_BUCKET_NAME,
+                    Delete: {
+                        Objects: key.map((key) => ({ Key: key })),
+                    },
+                };
+
+                const boardCommand = new DeleteObjectsCommand(boardParams);
+                await s3.send(boardCommand);
+            }
+
+            await pool
+                .promise()
+                .query('DELETE FROM boardInfo WHERE user_id = ?', [user_id]);
 
             // user 삭제(+이미지)
             const [result] = await pool
