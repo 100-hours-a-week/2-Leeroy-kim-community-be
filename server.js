@@ -27,11 +27,11 @@ app.use(timeout('5s'));
 app.set('trust proxy', 1);
 exports.apiLimiter = RateLimit({
     windowMs: 60 * 1000, //1분
-    max: 80,
+    max: 160,
     handler(req, res) {
         res.status(this.statusCode).json({
             code: this.statusCode, //RateLimit의 반환객체는 429code를 default로 반환하게 되어있음
-            message: '1분에 80번만 요청 할 수 있습니다.',
+            message: '요청 횟수를 초과하였습니다. 1분뒤에 다시 시도해주세요.',
         });
     },
     keyGenerator: (req) => {
